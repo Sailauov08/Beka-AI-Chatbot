@@ -20,7 +20,7 @@ services:
       - key: CLIENT_URL
         sync: false
       - key: GEMINI_MODEL
-        value: gemini-2.5-flash,gemini-2.0-flash-lite,gemini-1.5-flash-8b
+        value: gemini-2.0-flash,gemini-2.0-flash-lite,gemini-1.5-flash
       - key: LAVA_API_KEY
         sync: false
       - key: LAVA_OFFER_ID_BASIC

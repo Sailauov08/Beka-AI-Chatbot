@@ -12,7 +12,12 @@ import {
   incrementDailyMessage,
 } from '../utils/subscription.js';
 import { buildBekaSystemInstruction, wantsNoTranslation } from '../prompts/bekaSystem.js';
-import { writeSse, extractChunkText, buildHistoryForAI } from '../utils/geminiStream.js';
+import {
+  writeSse,
+  extractChunkText,
+  buildContentsForGenerate,
+  withTimeout,
+} from '../utils/geminiStream.js';
 
 const router = express.Router();
 
@@ -59,9 +64,9 @@ const getGenAI = () => {
 };
 
 const DEFAULT_MODELS = [
+  'gemini-2.0-flash',
   'gemini-2.0-flash-lite',
-  'gemini-1.5-flash-8b',
-  'gemini-2.5-flash',
+  'gemini-1.5-flash',
 ];
 
 const getModelList = () => {
@@ -90,8 +95,9 @@ const formatGeminiError = (error) => {
   }
   if (msg.includes('429') || msg.toLowerCase().includes('quota') || msg.includes('Too Many Requests')) {
     return (
-      'Gemini API квотасы асып кетті (429). 1–2 минут күтіп қайта көріңіз. ' +
-      'Немесе https://aistudio.google.com/apikey сайтынан жаңа API кілт (AIza...) жасап, .env файлына қойыңыз.'
+      'Gemini квотасы жоқ немесе асып кетті (429). Төлем жасағаннан кейін Google AI Studio-да ' +
+      'ЖАҢА API кілт жасап, Render → Environment → GEMINI_API_KEY жаңартыңыз (ескі кілт жаңа лимитті көрмейді). ' +
+      'https://aistudio.google.com/apikey'
     );
   }
   if (msg.includes('404') && msg.includes('not found')) {
@@ -116,6 +122,29 @@ const fileToGenerativePart = (filePath, mimeType) => {
     },
   };
 };
+
+// GET /api/chat/gemini-check — кілт жұмыс істей ме (тіркелген пайдаланушы)
+router.get('/gemini-check', protect, async (req, res) => {
+  try {
+    const genAI = getGenAI();
+    const modelName = getModelList()[0];
+    const model = genAI.getGenerativeModel({ model: modelName });
+    const result = await model.generateContent('Reply with exactly: OK');
+    const text = result.response.text()?.trim() || '';
+    res.json({
+      success: true,
+      model: modelName,
+      sample: text.slice(0, 80),
+      message: 'Gemini API жұмыс істейді',
+    });
+  } catch (error) {
+    console.error('Gemini check failed:', error.message);
+    res.status(500).json({
+      success: false,
+      message: formatGeminiError(error),
+    });
+  }
+});
 
 // GET /api/chat/history - list all chats for user
 router.get('/history', protect, async (req, res) => {
@@ -278,8 +307,6 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
 
     const genAI = getGenAI();
     const modelList = getModelList();
-    const historyForAI = buildHistoryForAI(chat.messages);
-
     let userText = message.trim();
     const recentUserTexts = chat.messages
       .filter((m) => m.role === 'user')
@@ -304,9 +331,11 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
     }
 
     const systemInstruction = buildBekaSystemInstruction(userLang);
+    const contents = buildContentsForGenerate(chat.messages, promptParts);
 
-    let result = null;
+    let streamResult = null;
     let lastError = null;
+    const GEMINI_TIMEOUT_MS = 90000;
 
     for (const modelName of modelList) {
       let attempts = 0;
@@ -318,18 +347,22 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
             model: modelName,
             systemInstruction,
           });
-          const chatSession = model.startChat({ history: historyForAI });
-          result = await chatSession.sendMessageStream(promptParts);
+
+          streamResult = await withTimeout(
+            model.generateContentStream({ contents }),
+            GEMINI_TIMEOUT_MS,
+            'AI 90 секундта жауап бермеді. Қайта көріңіз.'
+          );
           console.log(`Gemini model used: ${modelName}`);
           break;
         } catch (err) {
           lastError = err;
           attempts += 1;
-          console.warn(`Model ${modelName} failed:`, err.message?.slice(0, 120));
+          console.warn(`Model ${modelName} failed:`, err.message?.slice(0, 200));
 
           if (err.message?.includes('429') && attempts < maxAttempts) {
-            const delay = parseRetryDelayMs(err);
-            console.log(`429 — ${delay / 1000}s күтілуде, қайта сынау...`);
+            const delay = Math.min(parseRetryDelayMs(err), 20000);
+            console.log(`429 — ${delay / 1000}s күтілуде...`);
             writeSse(res, { type: 'status', status: 'thinking' });
             await sleep(delay);
             continue;
@@ -342,26 +375,22 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
         }
       }
 
-      if (result) break;
+      if (streamResult) break;
     }
 
     clearInterval(keepalive);
 
-    if (!result) {
+    if (!streamResult) {
       throw lastError || new Error('Барлық AI модельдері сәтсіз аяқталды');
     }
 
     writeSse(res, { type: 'status', status: 'generating' });
 
     let fullAssistantResponse = '';
-    let sentFirstChunk = false;
 
-    for await (const chunk of result.stream) {
+    for await (const chunk of streamResult.stream) {
       const chunkText = extractChunkText(chunk);
       if (chunkText) {
-        if (!sentFirstChunk) {
-          sentFirstChunk = true;
-        }
         fullAssistantResponse += chunkText;
         writeSse(res, { type: 'chunk', content: chunkText });
       }
@@ -370,7 +399,7 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
     if (!fullAssistantResponse.trim()) {
       let blockMsg = 'AI жауап бермеді. Қайта көріңіз немесе сұрақты өзгертіп жіберіңіз.';
       try {
-        const final = await result.response;
+        const final = await streamResult.response;
         const reason = final?.promptFeedback?.blockReason || final?.candidates?.[0]?.finishReason;
         if (reason) blockMsg = `AI жауап бермеді: ${reason}`;
       } catch {

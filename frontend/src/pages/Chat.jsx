@@ -177,6 +177,19 @@ const Chat = () => {
     abortControllersRef.current.set(key, controller);
 
     let streamChatId = activeChatId;
+    let streamFinished = false;
+    const finishOnce = async (finishKey) => {
+      if (streamFinished) return;
+      streamFinished = true;
+      await finishStream(finishKey);
+    };
+
+    const streamTimeout = setTimeout(() => {
+      if (!streamFinished) {
+        controller.abort();
+        setError(t('chat.timeout'));
+      }
+    }, 120000);
 
     try {
       const result = await chatAPI.sendMessageStream({
@@ -211,18 +224,19 @@ const Chat = () => {
           });
         },
         onDone: async (id) => {
-          await finishStream(chatKey(id || streamChatId || activeChatIdRef.current));
+          await finishOnce(chatKey(id || streamChatId || activeChatIdRef.current));
         },
         onError: (msg) => {
           setError(msg);
-          finishStream(chatKey(streamChatId || activeChatIdRef.current || key));
+          finishOnce(chatKey(streamChatId || activeChatIdRef.current || key));
         },
         onAborted: () => {
-          finishStream(key);
+          finishOnce(chatKey(streamChatId || activeChatIdRef.current || key));
         },
       });
 
       if (result?.gotError) {
+        clearTimeout(streamTimeout);
         return;
       }
     } catch (err) {
@@ -233,7 +247,9 @@ const Chat = () => {
           return prev;
         });
       }
-      await finishStream(key);
+      await finishOnce(chatKey(streamChatId || activeChatIdRef.current || key));
+    } finally {
+      clearTimeout(streamTimeout);
     }
   };
 
