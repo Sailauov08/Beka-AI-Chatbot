@@ -22,6 +22,7 @@ const Chat = () => {
   const [streamingIds, setStreamingIds] = useState(() => new Set());
   const [activeSection, setActiveSection] = useState('dashboard');
   const [error, setError] = useState('');
+  const [streamStatus, setStreamStatus] = useState(null);
   const messagesEndRef = useRef(null);
   const messagesCacheRef = useRef({});
   const abortControllersRef = useRef(new Map());
@@ -140,6 +141,7 @@ const Chat = () => {
 
   const finishStream = useCallback(
     async (key, removeEmptyAssistant = false) => {
+      setStreamStatus(null);
       setStreamingForKey(key, false);
       abortControllersRef.current.delete(key);
       if (removeEmptyAssistant) {
@@ -161,6 +163,7 @@ const Chat = () => {
     if (streamingIds.has(key)) return;
 
     setError('');
+    setStreamStatus('thinking');
     setActiveSection('chat');
     setStreamingForKey(key, true);
 
@@ -189,7 +192,11 @@ const Chat = () => {
             setActiveChatId(id);
           }
         },
+        onStatus: (status) => {
+          setStreamStatus(status);
+        },
         onChunk: (chunk) => {
+          setStreamStatus('generating');
           const targetKey = chatKey(streamChatId || activeChatIdRef.current);
           updateMessagesForKey(targetKey, (prev) => {
             const updated = [...prev];
@@ -208,15 +215,15 @@ const Chat = () => {
         },
         onError: (msg) => {
           setError(msg);
-          finishStream(key);
+          finishStream(chatKey(streamChatId || activeChatIdRef.current || key));
         },
         onAborted: () => {
           finishStream(key);
         },
       });
 
-      if (result?.aborted) {
-        await finishStream(chatKey(streamChatId || activeChatIdRef.current));
+      if (result?.gotError) {
+        return;
       }
     } catch (err) {
       if (err.name !== 'AbortError') {
@@ -302,7 +309,11 @@ const Chat = () => {
               <div className={`relative z-20 ${showHero ? 'pb-8 pt-[45vh]' : 'pb-4'}`}>
                 {isActiveChatStreaming && (
                   <p className="mb-2 text-center text-xs text-cyan-400/80 animate-pulse">
-                    {t('chat.streaming')}
+                    {streamStatus === 'thinking'
+                      ? t('chat.thinking')
+                      : streamStatus === 'generating'
+                        ? t('chat.streaming')
+                        : t('chat.thinking')}
                   </p>
                 )}
                 <AidaChatInput

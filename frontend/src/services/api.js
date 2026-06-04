@@ -135,6 +135,7 @@ export const chatAPI = {
     onDone,
     onError,
     onAborted,
+    onStatus,
   }) => {
     const formData = new FormData();
     formData.append('message', message);
@@ -179,6 +180,9 @@ export const chatAPI = {
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
+    let gotDone = false;
+    let lastChatId = chatId;
+    let gotError = false;
 
     try {
       while (true) {
@@ -200,20 +204,30 @@ export const chatAPI = {
             try {
               const parsed = JSON.parse(line.slice(6));
 
-              if (parsed.type === 'chatId' && onChatId) {
-                onChatId(parsed.chatId);
+              if (parsed.type === 'chatId') {
+                lastChatId = parsed.chatId;
+                onChatId?.(parsed.chatId);
+              } else if (parsed.type === 'status' && onStatus) {
+                onStatus(parsed.status);
               } else if (parsed.type === 'chunk' && onChunk) {
                 onChunk(parsed.content);
-              } else if (parsed.type === 'done' && onDone) {
-                onDone(parsed.chatId);
-              } else if (parsed.type === 'error' && onError) {
-                onError(parsed.message);
+              } else if (parsed.type === 'done') {
+                gotDone = true;
+                lastChatId = parsed.chatId || lastChatId;
+                await onDone?.(lastChatId);
+              } else if (parsed.type === 'error') {
+                gotError = true;
+                onError?.(parsed.message);
               }
             } catch {
               // skip malformed SSE lines
             }
           }
         }
+      }
+
+      if (!gotDone && !gotError) {
+        await onDone?.(lastChatId);
       }
     } catch (err) {
       if (err.name === 'AbortError') {
@@ -223,6 +237,6 @@ export const chatAPI = {
       throw err;
     }
 
-    return { aborted: false };
+    return { aborted: false, gotError };
   },
 };

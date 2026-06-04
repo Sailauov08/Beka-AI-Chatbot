@@ -12,6 +12,7 @@ import {
   incrementDailyMessage,
 } from '../utils/subscription.js';
 import { buildBekaSystemInstruction, wantsNoTranslation } from '../prompts/bekaSystem.js';
+import { writeSse, extractChunkText, buildHistoryForAI } from '../utils/geminiStream.js';
 
 const router = express.Router();
 
@@ -58,9 +59,9 @@ const getGenAI = () => {
 };
 
 const DEFAULT_MODELS = [
-  'gemini-2.5-flash',
   'gemini-2.0-flash-lite',
   'gemini-1.5-flash-8b',
+  'gemini-2.5-flash',
 ];
 
 const getModelList = () => {
@@ -195,6 +196,7 @@ router.delete('/:chatId', protect, async (req, res) => {
 // POST /api/chat - streaming AI response with SSE
 router.post('/', protect, upload.single('image'), async (req, res) => {
   let uploadedFilePath = null;
+  let keepalive = null;
 
   try {
     const { message, chatId, language } = req.body;
@@ -267,15 +269,16 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
     res.setHeader('X-Accel-Buffering', 'no');
     res.flushHeaders();
 
-    res.write(`data: ${JSON.stringify({ type: 'chatId', chatId: chat._id.toString() })}\n\n`);
+    writeSse(res, { type: 'chatId', chatId: chat._id.toString() });
+    writeSse(res, { type: 'status', status: 'thinking' });
+
+    keepalive = setInterval(() => {
+      writeSse(res, { type: 'ping' });
+    }, 10000);
 
     const genAI = getGenAI();
     const modelList = getModelList();
-
-    const historyForAI = chat.messages.slice(0, -1).map((msg) => ({
-      role: msg.role === 'user' ? 'user' : 'model',
-      parts: [{ text: msg.content }],
-    }));
+    const historyForAI = buildHistoryForAI(chat.messages);
 
     let userText = message.trim();
     const recentUserTexts = chat.messages
@@ -327,6 +330,7 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
           if (err.message?.includes('429') && attempts < maxAttempts) {
             const delay = parseRetryDelayMs(err);
             console.log(`429 — ${delay / 1000}s күтілуде, қайта сынау...`);
+            writeSse(res, { type: 'status', status: 'thinking' });
             await sleep(delay);
             continue;
           }
@@ -341,18 +345,38 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
       if (result) break;
     }
 
+    clearInterval(keepalive);
+
     if (!result) {
       throw lastError || new Error('Барлық AI модельдері сәтсіз аяқталды');
     }
 
+    writeSse(res, { type: 'status', status: 'generating' });
+
     let fullAssistantResponse = '';
+    let sentFirstChunk = false;
 
     for await (const chunk of result.stream) {
-      const chunkText = chunk.text();
+      const chunkText = extractChunkText(chunk);
       if (chunkText) {
+        if (!sentFirstChunk) {
+          sentFirstChunk = true;
+        }
         fullAssistantResponse += chunkText;
-        res.write(`data: ${JSON.stringify({ type: 'chunk', content: chunkText })}\n\n`);
+        writeSse(res, { type: 'chunk', content: chunkText });
       }
+    }
+
+    if (!fullAssistantResponse.trim()) {
+      let blockMsg = 'AI жауап бермеді. Қайта көріңіз немесе сұрақты өзгертіп жіберіңіз.';
+      try {
+        const final = await result.response;
+        const reason = final?.promptFeedback?.blockReason || final?.candidates?.[0]?.finishReason;
+        if (reason) blockMsg = `AI жауап бермеді: ${reason}`;
+      } catch {
+        /* ignore */
+      }
+      throw new Error(blockMsg);
     }
 
     chat.messages.push({
@@ -363,9 +387,10 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
     await chat.save();
     await incrementDailyMessage(req.user);
 
-    res.write(`data: ${JSON.stringify({ type: 'done', chatId: chat._id.toString() })}\n\n`);
+    writeSse(res, { type: 'done', chatId: chat._id.toString() });
     res.end();
   } catch (error) {
+    if (keepalive) clearInterval(keepalive);
     console.error('Chat stream error:', error);
 
     const friendlyMessage = formatGeminiError(error);
@@ -377,11 +402,10 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
       });
     }
 
-    res.write(
-      `data: ${JSON.stringify({ type: 'error', message: friendlyMessage })}\n\n`
-    );
+    writeSse(res, { type: 'error', message: friendlyMessage });
     res.end();
   } finally {
+    if (keepalive) clearInterval(keepalive);
     if (uploadedFilePath && fs.existsSync(uploadedFilePath)) {
       // Keep uploaded files for display; optional cleanup can be added later
     }
