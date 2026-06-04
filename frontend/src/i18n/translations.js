@@ -167,6 +167,7 @@ export const translations = {
       completion: 'Жоспар орындалуы',
       activity: 'Белсенділік',
       perMonth: '/ ай',
+      paymentHeading: 'Төлем',
       selectPlan: 'Жоспарды таңдау',
       subscribe: 'Жазылу',
       currentPlan: 'Ағымдағы',
@@ -177,7 +178,7 @@ export const translations = {
         basic: ['Басымдық чат', 'Күніне 80 хабарлама', 'Сурет + Vision', '30 күн белсенділік'],
         pro: ['Шексіз хабарлама', 'Pro басымдық кезек', 'Күрделі тапсырмалар', '30 күн Про'],
       },
-      activity: [
+      activityItems: [
         { text: 'Beka: клиентке хат жазды', plan: 'pro' },
         { text: 'Кестеге туған күн қосылды', plan: 'basic' },
         { text: 'Жаңа чат басталды', plan: 'free' },
@@ -408,6 +409,7 @@ export const translations = {
       resources: 'Ресурсы',
       completion: 'Выполнение плана',
       activity: 'Активность',
+      paymentHeading: 'Оплата',
       perMonth: '/ мес',
       selectPlan: 'Выбрать план',
       subscribe: 'Подписаться',
@@ -419,7 +421,7 @@ export const translations = {
         basic: ['Приоритетный чат', '80 сообщений в день', 'Фото + Vision', '30 дней доступа'],
         pro: ['Безлимит сообщений', 'Приоритет Pro', 'Сложные задачи', '30 дней Pro'],
       },
-      activity: [
+      activityItems: [
         { text: 'Beka: черновик письма клиенту', plan: 'pro' },
         { text: 'Добавлен день рождения в календарь', plan: 'basic' },
         { text: 'Начат новый чат', plan: 'free' },
@@ -650,6 +652,7 @@ export const translations = {
       resources: 'Resources',
       completion: 'Plan completion',
       activity: 'Activity stream',
+      paymentHeading: 'Payment',
       perMonth: '/ month',
       selectPlan: 'Select plan',
       subscribe: 'Subscribe',
@@ -661,7 +664,7 @@ export const translations = {
         basic: ['Priority chat', '80 messages per day', 'Image + Vision', '30 days access'],
         pro: ['Unlimited messages', 'Pro priority queue', 'Complex tasks', '30 days Pro'],
       },
-      activity: [
+      activityItems: [
         { text: 'Beka: drafted email to client', plan: 'pro' },
         { text: 'Birthday added to calendar', plan: 'basic' },
         { text: 'New chat started', plan: 'free' },

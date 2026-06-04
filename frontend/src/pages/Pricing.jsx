@@ -10,17 +10,30 @@ const PLAN_STYLE = {
   pro: { glow: 'pricing-card-pro', labelKey: 'pro' },
 };
 
+const DEFAULT_PLANS = [
+  { id: 'free', price: 0 },
+  { id: 'basic', price: 50 },
+  { id: 'pro', price: 120 },
+];
+
 const USAGE_BARS = [40, 55, 35, 70, 45, 80, 60];
 
 const Pricing = () => {
   const { subscription, refreshSubscription, isAuthenticated } = useAuth();
   const { t, planName } = usePreferences();
-  const [plans, setPlans] = useState([]);
+  const [plans, setPlans] = useState(DEFAULT_PLANS);
   const [loadingPlan, setLoadingPlan] = useState(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    paymentAPI.getPlans().then((res) => setPlans(res.data?.plans || [])).catch(() => {});
+    paymentAPI
+      .getPlans()
+      .then((res) => {
+        const fromApi = res.data?.plans;
+        setPlans(fromApi?.length ? fromApi : DEFAULT_PLANS);
+      })
+      .catch(() => setPlans(DEFAULT_PLANS));
+
     if (isAuthenticated) refreshSubscription();
   }, [isAuthenticated, refreshSubscription]);
 
@@ -40,8 +53,9 @@ const Pricing = () => {
 
   const currentPlan = subscription?.plan || 'free';
   const paymentsOn = plans.length > 0;
-  const activity = t('pricing.activity');
-  const activityList = Array.isArray(activity) ? activity : [];
+
+  const activityRaw = t('pricing.activityItems');
+  const activityList = Array.isArray(activityRaw) ? activityRaw : [];
 
   const getFeatures = (planId) => {
     const f = t(`pricing.features.${planId}`);
@@ -54,6 +68,7 @@ const Pricing = () => {
         <div className="aida-pricing-header">
           <div>
             <h1 className="aida-pricing-title">{t('pricing.title')}</h1>
+            <p className="aida-pricing-payment-heading">{t('pricing.paymentHeading')}</p>
             <div className="aida-efficiency-badge">
               <span className="text-xs text-slate-400">{t('pricing.efficiency')}</span>
               <span className="text-lg font-bold text-cyan-300">94%</span>

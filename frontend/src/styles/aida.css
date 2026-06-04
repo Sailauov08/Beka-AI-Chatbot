@@ -1012,6 +1012,13 @@
   letter-spacing: -0.02em;
 }
 
+.aida-pricing-payment-heading {
+  margin: 0.25rem 0 0.75rem;
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: rgba(226, 232, 240, 0.85);
+}
+
 .aida-efficiency-badge {
   display: flex;
   align-items: center;
