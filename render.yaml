@@ -5,6 +5,7 @@ services:
     plan: free
     buildCommand: npm run render-build
     startCommand: npm start
+    healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
@@ -16,5 +17,17 @@ services:
         sync: false
       - key: MONGO_URI
         sync: false
+      - key: CLIENT_URL
+        sync: false
       - key: GEMINI_MODEL
         value: gemini-2.5-flash,gemini-2.0-flash-lite,gemini-1.5-flash-8b
+      - key: LAVA_API_KEY
+        sync: false
+      - key: LAVA_OFFER_ID_BASIC
+        sync: false
+      - key: LAVA_OFFER_ID_PRO
+        sync: false
+      - key: LAVA_WEBHOOK_API_KEY
+        sync: false
+      - key: LAVA_PERIODICITY
+        value: MONTHLY

@@ -8,14 +8,16 @@ import Pricing from './pages/Pricing';
 import PaymentSuccess from './pages/PaymentSuccess';
 import PaymentCancel from './pages/PaymentCancel';
 import Settings from './pages/Settings';
+import Schedule from './pages/Schedule';
+import Profile from './pages/Profile';
 
 const PublicRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
 
   if (loading) {
     return (
-      <div className="page-bg flex h-screen items-center justify-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-brand border-t-transparent" />
+      <div className="aida-auth-page flex items-center justify-center">
+        <div className="aida-auth-loading" />
       </div>
     );
   }
@@ -59,6 +61,22 @@ function App() {
         element={
           <ProtectedRoute>
             <Settings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/schedule"
+        element={
+          <ProtectedRoute>
+            <Schedule />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <Profile />
           </ProtectedRoute>
         }
       />

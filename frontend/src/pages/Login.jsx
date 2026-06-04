@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { usePreferences } from '../context/PreferencesContext';
+import AuthFormCard from '../components/auth/AuthFormCard';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -8,6 +10,7 @@ const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
+  const { t } = usePreferences();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -18,61 +21,56 @@ const Login = () => {
       await login(email, password);
       navigate('/');
     } catch (err) {
-      setError(err.message || 'Кіру сәтсіз');
+      setError(err.message || t('auth.loginFailed'));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="page-bg flex min-h-screen items-center justify-center px-4">
-      <div className="card w-full max-w-md p-8">
-        <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-brand text-xl font-bold text-white">
-            B
-          </div>
-          <h1 className="text-2xl font-bold text-brand">Beka AI</h1>
-          <p className="mt-1 text-sm text-surface-subtext">AI көмекшіңізге кіріңіз</p>
-        </div>
+    <AuthFormCard subtitle={t('auth.loginTitle')}>
+      <form onSubmit={handleSubmit} className="aida-auth-form">
+        {error && <div className="aida-auth-error">{error}</div>}
 
-        <form onSubmit={handleSubmit}>
-          {error && (
-            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {error}
-            </div>
-          )}
-          <div className="mb-4">
-            <label className="mb-1 block text-sm text-surface-subtext">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="input-field"
-            />
-          </div>
-          <div className="mb-6">
-            <label className="mb-1 block text-sm text-surface-subtext">Құпия сөз</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="input-field"
-            />
-          </div>
-          <button type="submit" disabled={loading} className="btn-primary w-full">
-            {loading ? 'Кіру...' : 'Кіру'}
-          </button>
-          <p className="mt-6 text-center text-sm text-surface-subtext">
-            Тіркелмедіңіз бе?{' '}
-            <Link to="/register" className="font-medium text-brand hover:underline">
-              Тіркелу
-            </Link>
-          </p>
-        </form>
-      </div>
-    </div>
+        <label className="aida-auth-label" htmlFor="login-email">
+          {t('auth.email')}
+        </label>
+        <input
+          id="login-email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          autoComplete="email"
+          className="aida-auth-input"
+          placeholder="email@example.com"
+        />
+
+        <label className="aida-auth-label" htmlFor="login-password">
+          {t('auth.password')}
+        </label>
+        <input
+          id="login-password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          autoComplete="current-password"
+          className="aida-auth-input aida-auth-input-last"
+        />
+
+        <button type="submit" disabled={loading} className="aida-auth-btn">
+          {loading ? t('auth.loggingIn') : t('auth.login')}
+        </button>
+
+        <p className="aida-auth-footer">
+          {t('auth.noAccount')}{' '}
+          <Link to="/register" className="aida-auth-link">
+            {t('auth.register')}
+          </Link>
+        </p>
+      </form>
+    </AuthFormCard>
   );
 };
 

@@ -76,7 +76,7 @@ export const canUploadImage = (user) => {
   if (plan.imageUpload) return { allowed: true };
   return {
     allowed: false,
-    message: 'Сурет жүктеу Бастау немесе Про жоспарында. /pricing',
+    message: 'Сурет жүктеу уақытша қолжетімсіз. /pricing',
   };
 };
 

@@ -71,6 +71,26 @@ export const authAPI = {
     });
     return handleResponse(response);
   },
+
+  uploadAvatar: async (file) => {
+    const token = localStorage.getItem('token');
+    const form = new FormData();
+    form.append('avatar', file);
+    const response = await fetch(`${API_BASE}/auth/avatar`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: form,
+    });
+    return handleResponse(response);
+  },
+
+  deleteAvatar: async () => {
+    const response = await fetch(`${API_BASE}/auth/avatar`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    });
+    return handleResponse(response);
+  },
 };
 
 export const chatAPI = {

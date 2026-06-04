@@ -1,0 +1,1847 @@
+/* AIDA-style dashboard — dark glassmorphism */
+
+.aida-shell {
+  background: radial-gradient(ellipse 120% 80% at 50% 0%, #1a2744 0%, #0a0e1a 45%, #060810 100%);
+  color: #e2e8f0;
+}
+
+.aida-sidebar {
+  background: rgba(12, 18, 32, 0.72);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(148, 163, 184, 0.08);
+}
+
+.aida-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem;
+  margin: 0.15rem 0.5rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: rgba(226, 232, 240, 0.65);
+  transition: color 0.15s, background 0.15s;
+}
+
+.aida-nav-item:hover {
+  color: #f1f5f9;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.aida-nav-item.active {
+  color: #fff;
+  background: linear-gradient(90deg, rgba(37, 99, 235, 0.55) 0%, rgba(59, 130, 246, 0.25) 100%);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+}
+
+.aida-glass-panel {
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 0.75rem;
+}
+
+.aida-hero-wrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.aida-mesh {
+  position: relative;
+  width: min(90vw, 720px);
+  height: min(50vh, 380px);
+}
+
+.aida-mesh-grid {
+  position: absolute;
+  inset: -20%;
+  background-image:
+    linear-gradient(rgba(34, 211, 238, 0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 211, 238, 0.15) 1px, transparent 1px);
+  background-size: 28px 28px;
+  transform: perspective(600px) rotateX(62deg) scale(1.2);
+  animation: aida-grid-drift 12s linear infinite;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, black 20%, transparent 75%);
+}
+
+.aida-mesh-wave {
+  position: absolute;
+  inset: 10% 5%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(168, 85, 247, 0.35) 0%, transparent 55%),
+    radial-gradient(ellipse at 30% 70%, rgba(34, 211, 238, 0.25) 0%, transparent 50%);
+  filter: blur(40px);
+  animation: aida-pulse 6s ease-in-out infinite;
+}
+
+.aida-mesh-lines {
+  position: absolute;
+  inset: 0;
+  opacity: 0.9;
+}
+
+.aida-mesh-lines svg {
+  width: 100%;
+  height: 100%;
+}
+
+.aida-mesh-line-path {
+  fill: none;
+  stroke: url(#aidaStroke);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  animation: aida-line-flow 8s ease-in-out infinite;
+}
+
+@keyframes aida-grid-drift {
+  0% {
+    transform: perspective(600px) rotateX(62deg) scale(1.2) translateY(0);
+  }
+  100% {
+    transform: perspective(600px) rotateX(62deg) scale(1.2) translateY(28px);
+  }
+}
+
+@keyframes aida-pulse {
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes aida-line-flow {
+  0%,
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0.7;
+  }
+  50% {
+    stroke-dashoffset: 120;
+    opacity: 1;
+  }
+}
+
+.aida-orb {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 10;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #a78bfa, #3b82f6 50%, #0f172a 100%);
+  box-shadow:
+    0 0 30px rgba(139, 92, 246, 0.5),
+    0 0 60px rgba(59, 130, 246, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #fff;
+  animation: aida-orb-float 4s ease-in-out infinite;
+}
+
+.aida-orb.aida-orb-inline {
+  position: relative;
+  top: auto;
+  right: auto;
+  animation: none;
+}
+
+.aida-orb.aida-orb-inline::before {
+  animation: aida-orb-spin 3s linear infinite;
+}
+
+.aida-orb::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top-color: rgba(34, 211, 238, 0.8);
+  border-right-color: rgba(168, 85, 247, 0.6);
+  animation: aida-orb-spin 3s linear infinite;
+}
+
+@keyframes aida-orb-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes aida-orb-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.aida-input-shell {
+  position: relative;
+  margin: 0 auto;
+  max-width: 42rem;
+  padding: 0 1rem 1.5rem;
+}
+
+.aida-input-glow {
+  position: absolute;
+  inset: -2px;
+  border-radius: 1.25rem;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.5), rgba(59, 130, 246, 0.5), rgba(34, 211, 238, 0.4));
+  opacity: 0.6;
+  filter: blur(8px);
+  z-index: 0;
+}
+
+.aida-input-bar {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 1.125rem;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+.aida-input-bar input,
+.aida-input-bar textarea {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #f1f5f9;
+  font-size: 0.9rem;
+  resize: none;
+  min-height: 1.5rem;
+  max-height: 120px;
+}
+
+.aida-input-bar input::placeholder,
+.aida-input-bar textarea::placeholder {
+  color: rgba(148, 163, 184, 0.7);
+}
+
+.aida-icon-btn {
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(226, 232, 240, 0.8);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  transition: background 0.15s, color 0.15s;
+}
+
+.aida-icon-btn:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.2);
+  color: #fff;
+}
+
+.aida-icon-btn.listening {
+  background: rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+}
+
+.aida-send-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.45);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.aida-send-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 28px rgba(37, 99, 235, 0.55);
+}
+
+.aida-send-btn:disabled {
+  opacity: 0.45;
+}
+
+.aida-widget {
+  width: 14rem;
+  flex-shrink: 0;
+}
+
+.aida-weather-select {
+  padding: 0.45rem 0.65rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  color: #e2e8f0;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(34, 211, 238, 0.25);
+  outline: none;
+  cursor: pointer;
+}
+
+.aida-weather-select:focus {
+  border-color: rgba(34, 211, 238, 0.6);
+  box-shadow: 0 0 12px rgba(34, 211, 238, 0.2);
+}
+
+.aida-weather-select option {
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+.aida-weather-hourly {
+  display: flex;
+  gap: 0.35rem;
+  justify-content: space-between;
+}
+
+.aida-weather-hour-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  flex: 1;
+  min-width: 0;
+  padding: 0.25rem 0.1rem;
+  border-radius: 0.35rem;
+  background: rgba(30, 41, 59, 0.4);
+}
+
+.aida-weather-pulse {
+  opacity: 0.92;
+  transition: opacity 0.3s;
+}
+
+.aida-weather-refresh {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 0.25rem;
+  line-height: 1;
+}
+
+.aida-messages {
+  background: transparent;
+}
+
+.aida-messages .aida-msg-user {
+  background: rgba(37, 99, 235, 0.35);
+  border: 1px solid rgba(96, 165, 250, 0.25);
+  color: #f8fafc;
+}
+
+.aida-messages .aida-msg-ai {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  color: #e2e8f0;
+}
+
+.aida-messages .markdown-body code:not(pre code) {
+  background: rgba(30, 41, 59, 0.8);
+  color: #93c5fd;
+}
+
+.aida-chat-list {
+  max-height: 12rem;
+  overflow-y: auto;
+}
+
+.aida-chat-item {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0.4rem 0.75rem;
+  margin: 0.1rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  color: rgba(226, 232, 240, 0.6);
+  text-align: left;
+  transition: background 0.15s, color 0.15s;
+}
+
+.aida-chat-item:hover,
+.aida-chat-item.active {
+  background: rgba(255, 255, 255, 0.06);
+  color: #f1f5f9;
+}
+
+/* ——— Settings page ——— */
+
+.aida-nav-item.active-settings {
+  color: #fef3c7;
+  background: linear-gradient(90deg, rgba(234, 179, 8, 0.35) 0%, rgba(251, 191, 36, 0.12) 100%);
+  box-shadow: 0 0 24px rgba(251, 191, 36, 0.25);
+  border-left: 3px solid #fbbf24;
+}
+
+.aida-settings-main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem 1.75rem 2rem;
+  padding-top: 3.5rem;
+}
+
+@media (min-width: 1024px) {
+  .aida-settings-main {
+    padding-top: 1.75rem;
+  }
+}
+
+.aida-settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.aida-settings-title {
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #f8fafc;
+}
+
+.aida-settings-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .aida-settings-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .aida-settings-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.aida-settings-card {
+  position: relative;
+  padding: 1.25rem;
+  border-radius: 1rem;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.05);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.aida-settings-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(34, 211, 238, 0.25),
+    rgba(168, 85, 247, 0.2),
+    rgba(236, 72, 153, 0.15)
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.aida-settings-card:hover {
+  border-color: rgba(96, 165, 250, 0.25);
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.4);
+}
+
+.aida-settings-card h3 {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin-bottom: 1rem;
+}
+
+.aida-settings-label {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+  margin-bottom: 0.35rem;
+}
+
+.aida-settings-select {
+  width: 100%;
+  appearance: none;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(30, 41, 59, 0.6) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E") right 0.5rem center / 1.25rem no-repeat;
+  padding: 0.5rem 2rem 0.5rem 2.25rem;
+  font-size: 0.8125rem;
+  color: #e2e8f0;
+  outline: none;
+}
+
+.aida-settings-select:focus {
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.aida-segment {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.2rem;
+  border-radius: 0.5rem;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.aida-segment button {
+  flex: 1;
+  padding: 0.4rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: #94a3b8;
+  transition: background 0.15s, color 0.15s;
+}
+
+.aida-segment button.active {
+  background: rgba(59, 130, 246, 0.35);
+  color: #fff;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.3);
+}
+
+.aida-range {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  appearance: none;
+  background: linear-gradient(90deg, #3b82f6, #22d3ee, #4ade80);
+  outline: none;
+}
+
+.aida-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+  cursor: pointer;
+}
+
+.aida-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+}
+
+.aida-toggle-row:last-child {
+  border-bottom: none;
+}
+
+.aida-toggle-row span {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: #cbd5e1;
+}
+
+.aida-toggle {
+  position: relative;
+  width: 2.5rem;
+  height: 1.35rem;
+  border-radius: 999px;
+  background: rgba(51, 65, 85, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.aida-toggle.on {
+  background: linear-gradient(90deg, #2563eb, #3b82f6);
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
+}
+
+.aida-toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s;
+}
+
+.aida-toggle.on::after {
+  transform: translateX(1.1rem);
+}
+
+.aida-theme-pill {
+  display: flex;
+  padding: 0.2rem;
+  border-radius: 999px;
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+.aida-theme-pill button {
+  flex: 1;
+  padding: 0.35rem 1rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.aida-theme-pill button.active {
+  background: rgba(59, 130, 246, 0.4);
+  color: #fff;
+}
+
+.aida-swatch {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s;
+}
+
+.aida-swatch.active {
+  border-color: #fff;
+  transform: scale(1.1);
+  box-shadow: 0 0 12px currentColor;
+}
+
+.aida-settings-btn {
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.55rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #e2e8f0;
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.aida-settings-btn:hover {
+  background: rgba(51, 65, 85, 0.8);
+  border-color: rgba(96, 165, 250, 0.35);
+}
+
+.aida-device-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 0;
+  font-size: 0.8125rem;
+  color: #cbd5e1;
+}
+
+.aida-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 8px #4ade80;
+}
+
+.aida-about-text {
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  color: #64748b;
+  margin: 0.5rem 0 0;
+}
+
+.aida-settings-input {
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(30, 41, 59, 0.6);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+  color: #e2e8f0;
+  outline: none;
+}
+
+.aida-settings-input:focus {
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* ——— Schedule / Calendar ——— */
+
+.aida-schedule-main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem 1.75rem 2rem;
+  padding-top: 3.5rem;
+}
+
+@media (min-width: 1024px) {
+  .aida-schedule-main {
+    padding-top: 1.75rem;
+  }
+}
+
+.aida-schedule-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.aida-schedule-layout {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 1100px) {
+  .aida-schedule-layout {
+    grid-template-columns: 1fr 18rem;
+  }
+}
+
+.aida-calendar-card {
+  min-height: 420px;
+}
+
+.aida-cal-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.aida-cal-month {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  min-width: 10rem;
+  text-align: center;
+}
+
+.aida-cal-nav {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.375rem;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.aida-cal-nav:hover {
+  color: #fff;
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.aida-cal-today {
+  padding: 0.35rem 0.85rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #22d3ee;
+  border: 1px solid rgba(34, 211, 238, 0.35);
+  background: rgba(34, 211, 238, 0.08);
+}
+
+.aida-cal-today:hover {
+  background: rgba(34, 211, 238, 0.15);
+}
+
+.aida-cal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 0.35rem;
+  text-align: center;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.aida-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.aida-cal-cell {
+  min-height: 4.5rem;
+  padding: 0.35rem;
+  border-radius: 0.5rem;
+  border: 1px solid transparent;
+  background: rgba(30, 41, 59, 0.35);
+  text-align: left;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.aida-cal-cell.empty {
+  background: transparent;
+  border: none;
+  pointer-events: none;
+}
+
+.aida-cal-cell:hover:not(.empty) {
+  border-color: rgba(148, 163, 184, 0.25);
+  background: rgba(51, 65, 85, 0.5);
+}
+
+.aida-cal-cell.today {
+  box-shadow: 0 0 16px rgba(34, 211, 238, 0.35);
+  border-color: rgba(34, 211, 238, 0.5);
+}
+
+.aida-cal-cell.selected {
+  border-color: rgba(251, 191, 36, 0.6);
+  background: rgba(251, 191, 36, 0.08);
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.2);
+}
+
+.aida-cal-day-num {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.aida-cal-dots {
+  margin-top: 0.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.aida-cal-event-pill {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.5625rem;
+  padding: 1px 4px;
+  border-radius: 3px;
+  border: 1px solid;
+}
+
+.aida-cal-event-pill.type-gold {
+  color: #fcd34d;
+  border-color: rgba(251, 191, 36, 0.5);
+  background: rgba(251, 191, 36, 0.12);
+}
+
+.aida-cal-event-pill.type-cyan {
+  color: #67e8f9;
+  border-color: rgba(34, 211, 238, 0.4);
+  background: rgba(34, 211, 238, 0.1);
+}
+
+.aida-cal-event-pill.type-purple {
+  color: #d8b4fe;
+  border-color: rgba(168, 85, 247, 0.45);
+  background: rgba(168, 85, 247, 0.12);
+}
+
+.aida-cal-event-pill.type-magenta {
+  color: #f9a8d4;
+  border-color: rgba(236, 72, 153, 0.4);
+  background: rgba(236, 72, 153, 0.1);
+}
+
+.aida-cal-event-pill.type-blue {
+  color: #93c5fd;
+  border-color: rgba(59, 130, 246, 0.4);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.aida-cal-event-pill.type-slate {
+  color: #94a3b8;
+  border-color: rgba(148, 163, 184, 0.3);
+  background: rgba(148, 163, 184, 0.08);
+}
+
+.aida-cal-selected-day {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.aida-schedule-side {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.aida-upcoming-list {
+  margin-top: 0.5rem;
+  max-height: 14rem;
+  overflow-y: auto;
+}
+
+.aida-upcoming-list li {
+  padding: 0.65rem 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+}
+
+.aida-upcoming-list li:last-child {
+  border-bottom: none;
+}
+
+.aida-tag {
+  display: inline-block;
+  margin-top: 0.25rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.625rem;
+  font-weight: 600;
+}
+
+.aida-tag.type-cyan {
+  background: rgba(34, 211, 238, 0.2);
+  color: #67e8f9;
+}
+
+.aida-tag.type-gold {
+  background: rgba(251, 191, 36, 0.2);
+  color: #fcd34d;
+}
+
+.aida-tag.type-purple {
+  background: rgba(168, 85, 247, 0.2);
+  color: #d8b4fe;
+}
+
+.aida-tag.type-magenta {
+  background: rgba(236, 72, 153, 0.2);
+  color: #f9a8d4;
+}
+
+.aida-tag.type-blue {
+  background: rgba(59, 130, 246, 0.2);
+  color: #93c5fd;
+}
+
+.aida-tag.type-slate {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+}
+
+.aida-cal-create-btn {
+  width: 100%;
+  padding: 0.6rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.4);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.aida-cal-create-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(37, 99, 235, 0.5);
+}
+
+/* ——— Pricing / Tariffs ——— */
+
+.aida-pricing-main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem 1.75rem 2rem;
+  padding-top: 3.5rem;
+}
+
+@media (min-width: 1024px) {
+  .aida-pricing-main {
+    padding-top: 1.75rem;
+  }
+}
+
+.aida-pricing-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+}
+
+.aida-pricing-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #f8fafc;
+  letter-spacing: -0.02em;
+}
+
+.aida-efficiency-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.aida-pricing-layout {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 1200px) {
+  .aida-pricing-layout {
+    grid-template-columns: 1fr 17rem;
+  }
+}
+
+.aida-pricing-cards {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .aida-pricing-cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.aida-pricing-card {
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.aida-pricing-card:hover {
+  transform: translateY(-2px);
+}
+
+.pricing-card-free {
+  box-shadow: 0 0 32px rgba(34, 211, 238, 0.2), inset 0 0 0 1px rgba(34, 211, 238, 0.35);
+}
+
+.pricing-card-standard {
+  box-shadow: 0 0 36px rgba(251, 191, 36, 0.22), inset 0 0 0 1px rgba(251, 191, 36, 0.4);
+}
+
+.pricing-card-pro {
+  box-shadow: 0 0 40px rgba(168, 85, 247, 0.28), inset 0 0 0 1px rgba(168, 85, 247, 0.45);
+}
+
+.aida-pricing-card-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.aida-pricing-tier {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: #94a3b8;
+}
+
+.pricing-card-free .aida-pricing-tier {
+  color: #67e8f9;
+}
+
+.pricing-card-standard .aida-pricing-tier {
+  color: #fcd34d;
+}
+
+.pricing-card-pro .aida-pricing-tier {
+  color: #d8b4fe;
+}
+
+.aida-pricing-sub {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
+.aida-pricing-price {
+  margin: 1rem 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.aida-pricing-features {
+  flex: 1;
+  margin: 0 0 1.25rem;
+  padding: 0;
+  list-style: none;
+  space-y: 0.5rem;
+}
+
+.aida-pricing-features li {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #cbd5e1;
+  margin-bottom: 0.4rem;
+  line-height: 1.35;
+}
+
+.aida-pricing-btn {
+  width: 100%;
+  padding: 0.65rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #0f172a;
+  background: linear-gradient(135deg, #fcd34d 0%, #f59e0b 100%);
+  box-shadow: 0 4px 16px rgba(251, 191, 36, 0.35);
+  transition: transform 0.15s, opacity 0.15s;
+}
+
+.aida-pricing-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.aida-pricing-btn.pro {
+  color: #fff;
+  background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+  box-shadow: 0 4px 20px rgba(168, 85, 247, 0.45);
+}
+
+.aida-pricing-btn:disabled {
+  opacity: 0.5;
+}
+
+.aida-pricing-btn-muted {
+  text-align: center;
+  padding: 0.65rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #64748b;
+  border: 1px dashed rgba(148, 163, 184, 0.25);
+  border-radius: 0.5rem;
+}
+
+.aida-pricing-insights {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.aida-usage-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 4rem;
+}
+
+.aida-usage-bar {
+  flex: 1;
+  min-height: 4px;
+  border-radius: 2px 2px 0 0;
+  background: linear-gradient(180deg, #22d3ee 0%, #3b82f6 100%);
+  opacity: 0.85;
+}
+
+.aida-donut {
+  display: flex;
+  justify-content: center;
+  padding: 0.5rem 0;
+}
+
+.aida-donut-ring {
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 50%;
+  background: conic-gradient(
+    #22d3ee 0deg 120deg,
+    #a855f7 120deg 240deg,
+    #fbbf24 240deg 360deg
+  );
+  mask: radial-gradient(circle at center, transparent 55%, black 56%);
+  -webkit-mask: radial-gradient(circle at center, transparent 55%, black 56%);
+}
+
+.aida-activity-list {
+  margin-top: 0.5rem;
+  max-height: 12rem;
+  overflow-y: auto;
+}
+
+.aida-activity-item {
+  display: flex;
+  gap: 0.65rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+}
+
+.aida-activity-avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.aida-plan-badge {
+  display: inline-block;
+  margin-top: 0.2rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.badge-free {
+  background: rgba(34, 211, 238, 0.2);
+  color: #67e8f9;
+}
+
+.badge-basic {
+  background: rgba(251, 191, 36, 0.2);
+  color: #fcd34d;
+}
+
+.badge-pro {
+  background: rgba(168, 85, 247, 0.25);
+  color: #d8b4fe;
+}
+
+/* ——— Profile ——— */
+
+.aida-profile-main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem 1.75rem 2rem;
+  padding-top: 3.5rem;
+}
+
+@media (min-width: 1024px) {
+  .aida-profile-main {
+    padding-top: 1.75rem;
+  }
+}
+
+.aida-profile-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+}
+
+.profile-card {
+  padding: 1.25rem;
+  border-radius: 1rem;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.profile-glow-gold {
+  box-shadow: 0 0 28px rgba(251, 191, 36, 0.15), inset 0 0 0 1px rgba(251, 191, 36, 0.35);
+}
+
+.profile-glow-cyan {
+  box-shadow: 0 0 28px rgba(34, 211, 238, 0.12), inset 0 0 0 1px rgba(34, 211, 238, 0.35);
+}
+
+.profile-glow-purple {
+  box-shadow: 0 0 28px rgba(168, 85, 247, 0.15), inset 0 0 0 1px rgba(168, 85, 247, 0.35);
+}
+
+.profile-glow-magenta {
+  box-shadow: 0 0 28px rgba(236, 72, 153, 0.12), inset 0 0 0 1px rgba(236, 72, 153, 0.3);
+}
+
+.profile-glow-blue {
+  box-shadow: 0 0 28px rgba(59, 130, 246, 0.12), inset 0 0 0 1px rgba(96, 165, 250, 0.3);
+}
+
+.profile-card h3 {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin-bottom: 1rem;
+}
+
+.profile-header-card {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.profile-avatar {
+  position: relative;
+  border-radius: 50%;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  box-shadow: 0 0 24px rgba(168, 85, 247, 0.35);
+}
+
+.profile-avatar-lg {
+  width: 4.5rem;
+  height: 4.5rem;
+}
+
+.profile-avatar-md {
+  width: 2.75rem;
+  height: 2.75rem;
+  box-shadow: 0 0 16px rgba(59, 130, 246, 0.35);
+}
+
+.profile-avatar-sm {
+  width: 2rem;
+  height: 2rem;
+}
+
+.profile-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.profile-avatar-initial {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-weight: 700;
+  color: #fff;
+}
+
+.profile-avatar-lg .profile-avatar-initial {
+  font-size: 1.5rem;
+}
+
+.profile-avatar-md .profile-avatar-initial {
+  font-size: 0.875rem;
+}
+
+.profile-avatar-editable .profile-avatar-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.55);
+  color: #e2e8f0;
+  border: none;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.profile-avatar-editable:hover .profile-avatar-overlay,
+.profile-avatar-editable.is-uploading .profile-avatar-overlay {
+  opacity: 1;
+}
+
+.profile-avatar-remove {
+  margin-top: 0.35rem;
+  font-size: 0.65rem;
+  color: #94a3b8;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.profile-avatar-remove:hover {
+  color: #f87171;
+}
+
+.profile-header-avatar-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.profile-avatar-hint {
+  margin-top: 0.35rem;
+  font-size: 0.65rem;
+  color: #64748b;
+  text-align: center;
+  max-width: 6rem;
+}
+
+.profile-avatar-error {
+  margin-top: 0.25rem;
+  font-size: 0.65rem;
+  color: #f87171;
+  text-align: center;
+  max-width: 8rem;
+}
+
+.profile-status-box {
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(74, 222, 128, 0.4);
+  background: rgba(74, 222, 128, 0.08);
+  box-shadow: 0 0 16px rgba(74, 222, 128, 0.15);
+}
+
+.aida-profile-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 1100px) {
+  .aida-profile-grid {
+    grid-template-columns: 1.1fr 1fr 1fr;
+  }
+}
+
+.aida-profile-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.profile-tariff-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.profile-tariff-mini {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  background: rgba(30, 41, 59, 0.5);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.profile-tariff-mini:hover {
+  transform: translateY(-2px);
+}
+
+.profile-tariff-mini.current {
+  outline: 2px solid rgba(255, 255, 255, 0.35);
+  outline-offset: 2px;
+}
+
+.profile-tariff-mini.glow-cyan {
+  border-color: rgba(34, 211, 238, 0.4);
+}
+
+.profile-tariff-mini.glow-gold {
+  border-color: rgba(251, 191, 36, 0.45);
+}
+
+.profile-tariff-mini.glow-purple {
+  border-color: rgba(168, 85, 247, 0.45);
+}
+
+.profile-outline-btn {
+  padding: 0.55rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #fcd34d;
+  border: 1px solid rgba(251, 191, 36, 0.5);
+  background: transparent;
+  transition: background 0.15s;
+}
+
+.profile-outline-btn:hover {
+  background: rgba(251, 191, 36, 0.1);
+}
+
+.profile-security-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+  text-align: left;
+  font-size: 0.8125rem;
+  color: #cbd5e1;
+  background: none;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+}
+
+.profile-check-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: #cbd5e1;
+  margin-bottom: 0.35rem;
+  cursor: pointer;
+}
+
+.profile-gauge {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.profile-gauge-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -65%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+}
+
+/* ——— Auth (Login / Register) ——— */
+
+.aida-auth-page {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  overflow: auto;
+  background: radial-gradient(ellipse 100% 80% at 50% 20%, #1e2a4a 0%, #0c1222 40%, #060810 100%);
+}
+
+.aida-auth-bg {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.aida-auth-bg .aida-hero-wrap {
+  position: absolute;
+  inset: 0;
+}
+
+.aida-auth-bg .aida-mesh {
+  width: min(95vw, 900px);
+  height: min(70vh, 520px);
+  margin: auto;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -48%);
+  position: absolute;
+}
+
+.aida-auth-orbit {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(34, 211, 238, 0.18);
+  box-shadow: 0 0 30px rgba(34, 211, 238, 0.06);
+}
+
+.aida-auth-orbit-1 {
+  width: 420px;
+  height: 420px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: aida-auth-orbit-spin 40s linear infinite;
+}
+
+.aida-auth-orbit-2 {
+  width: 580px;
+  height: 580px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-color: rgba(168, 85, 247, 0.15);
+  animation: aida-auth-orbit-spin 55s linear infinite reverse;
+}
+
+.aida-auth-orbit-3 {
+  width: 720px;
+  height: 720px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-style: dashed;
+  opacity: 0.5;
+  animation: aida-auth-orbit-spin 70s linear infinite;
+}
+
+.aida-auth-node {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22d3ee;
+  box-shadow: 0 0 12px #22d3ee, 0 0 24px rgba(34, 211, 238, 0.4);
+}
+
+.aida-auth-node-1 {
+  top: 28%;
+  left: 22%;
+}
+
+.aida-auth-node-2 {
+  top: 62%;
+  right: 18%;
+}
+
+.aida-auth-node-3 {
+  bottom: 22%;
+  left: 38%;
+  background: #a855f7;
+  box-shadow: 0 0 12px #a855f7;
+}
+
+@keyframes aida-auth-orbit-spin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+.aida-auth-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 440px;
+}
+
+.aida-auth-card {
+  padding: 2.25rem 2rem 2rem;
+  border-radius: 1.25rem;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(226, 232, 240, 0.12);
+  box-shadow:
+    0 0 40px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.aida-auth-card--tall {
+  max-height: calc(100dvh - 3rem);
+  overflow-y: auto;
+}
+
+.aida-auth-card--tall .aida-auth-input {
+  margin-bottom: 0.85rem;
+}
+
+.aida-auth-input-last {
+  margin-bottom: 1.1rem;
+}
+
+.aida-auth-brand-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.aida-auth-brand {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #7dd3fc;
+  text-shadow: 0 0 24px rgba(34, 211, 238, 0.55), 0 0 48px rgba(59, 130, 246, 0.35);
+  margin: 0;
+}
+
+.aida-auth-wave-icon {
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 8px rgba(34, 211, 238, 0.5));
+}
+
+.aida-auth-wave-icon.mirror {
+  transform: scaleX(-1);
+}
+
+.aida-auth-subtitle {
+  text-align: center;
+  font-size: 0.9375rem;
+  color: rgba(226, 232, 240, 0.75);
+  margin: 0 0 1.75rem;
+}
+
+.aida-auth-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.aida-auth-label {
+  font-size: 0.875rem;
+  color: #e2e8f0;
+  margin-bottom: 0.4rem;
+}
+
+.aida-auth-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.1rem;
+  border-radius: 0.5rem;
+  font-size: 0.9375rem;
+  color: #f1f5f9;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.aida-auth-input::placeholder {
+  color: rgba(148, 163, 184, 0.45);
+}
+
+.aida-auth-input:focus {
+  border-color: rgba(34, 211, 238, 0.85);
+  box-shadow:
+    0 0 0 1px rgba(34, 211, 238, 0.4),
+    0 0 20px rgba(34, 211, 238, 0.35),
+    0 0 40px rgba(34, 211, 238, 0.12);
+}
+
+.aida-auth-btn {
+  margin-top: 0.5rem;
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  border: 1px solid rgba(34, 211, 238, 0.35);
+  background: linear-gradient(180deg, #1e3a5f 0%, #0f2744 100%);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.2s, opacity 0.15s;
+  box-shadow:
+    0 0 20px rgba(34, 211, 238, 0.35),
+    0 0 40px rgba(34, 211, 238, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.aida-auth-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow:
+    0 0 28px rgba(34, 211, 238, 0.5),
+    0 0 50px rgba(34, 211, 238, 0.2);
+}
+
+.aida-auth-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.aida-auth-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: rgba(203, 213, 225, 0.75);
+}
+
+.aida-auth-link {
+  color: #67e8f9;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.aida-auth-link:hover {
+  color: #a5f3fc;
+}
+
+.aida-auth-error {
+  margin-bottom: 1rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  color: #fecaca;
+  background: rgba(127, 29, 29, 0.35);
+  border: 1px solid rgba(248, 113, 113, 0.35);
+}
+
+.aida-auth-loading {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  border: 2px solid rgba(34, 211, 238, 0.2);
+  border-top-color: #22d3ee;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.aida-account-strip {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-radius: 1rem;
+  background: rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+}

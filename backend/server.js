@@ -9,8 +9,17 @@ import { fileURLToPath } from 'url';
 import authRoutes from './routes/auth.js';
 import chatRoutes from './routes/chat.js';
 import paymentRoutes, { handleLavaWebhook } from './routes/payment.js';
+import { getPublicAppUrl } from './utils/appUrl.js';
 
 dotenv.config();
+
+const uploadsRoot = path.join(__dirname, 'uploads');
+const avatarsDir = path.join(uploadsRoot, 'avatars');
+for (const dir of [uploadsRoot, avatarsDir]) {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -45,6 +54,11 @@ if (process.env.CLIENT_URL) {
   );
 }
 
+const publicAppUrl = getPublicAppUrl();
+if (publicAppUrl && !corsOrigins.includes(publicAppUrl)) {
+  corsOrigins.push(publicAppUrl);
+}
+
 app.use(cors({
   origin: corsOrigins,
   credentials: true,
@@ -62,7 +76,17 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/payment', paymentRoutes);
 
 app.get('/api/health', (req, res) => {
-  res.json({ success: true, message: 'Beka AI Chatbot API is running' });
+  res.json({
+    success: true,
+    message: 'Beka AI is running',
+    frontend: serveFrontend,
+    database: mongoose.connection.readyState === 1,
+    appUrl: publicAppUrl || null,
+    gemini: Boolean(
+      process.env.GEMINI_API_KEY &&
+        process.env.GEMINI_API_KEY !== 'your_gemini_api_key_here'
+    ),
+  });
 });
 
 if (serveFrontend) {
@@ -107,10 +131,13 @@ if (!process.env.LAVA_API_KEY || !process.env.LAVA_OFFER_ID) {
 }
 
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
+  if (publicAppUrl) {
+    console.log(`Public URL: ${publicAppUrl}`);
+  }
   if (serveFrontend) {
-    console.log(`Frontend (production): http://localhost:${PORT}`);
-    console.log('Бір сервер — екі терезе қажет емес.');
+    console.log(`Frontend: ${publicAppUrl || `http://localhost:${PORT}`}`);
+    console.log('Бір сервер — API + React бірге.');
   } else {
     console.warn('⚠ frontend/dist табылмады — Chrome-да Cannot GET / шығады!');
     console.log('Шешім: build-frontend.bat, содан кейін start-beka.bat');

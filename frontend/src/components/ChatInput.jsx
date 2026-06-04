@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
+import { IconImage } from './ui/Icons';
 
 const ChatInput = ({ onSend, disabled, placeholder, imageUploadEnabled = true }) => {
   const [message, setMessage] = useState('');
@@ -63,20 +64,16 @@ const ChatInput = ({ onSend, disabled, placeholder, imageUploadEnabled = true })
             </button>
           </div>
         )}
-        <div className="flex items-end gap-2 rounded-2xl border border-surface-border bg-surface-muted p-2 focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/20">
+        <div className="flex items-end gap-2 rounded-md border border-surface-border bg-white p-2 shadow-sm focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/15">
           <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
           <button
             type="button"
-            onClick={() => {
-              if (!imageUploadEnabled) {
-                alert('Сурет — Бастау немесе Про жоспарында');
-                return;
-              }
-              fileInputRef.current?.click();
-            }}
+            onClick={() => imageUploadEnabled && fileInputRef.current?.click()}
+            disabled={!imageUploadEnabled}
+            title="Сурет қосу"
             className={iconBtn}
           >
-            📷
+            <IconImage />
           </button>
           <textarea
             ref={textareaRef}
@@ -88,8 +85,15 @@ const ChatInput = ({ onSend, disabled, placeholder, imageUploadEnabled = true })
             rows={1}
             className="max-h-[200px] min-h-[28px] flex-1 resize-none bg-transparent py-2 text-surface-text outline-none"
           />
-          <button type="submit" disabled={disabled || (!message.trim() && !image)} className="btn-primary shrink-0 !py-2">
-            ↑
+          <button
+            type="submit"
+            disabled={disabled || (!message.trim() && !image)}
+            className="btn-primary shrink-0 !rounded-md !px-3 !py-2"
+            aria-label="Жіберу"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
           </button>
         </div>
       </form>

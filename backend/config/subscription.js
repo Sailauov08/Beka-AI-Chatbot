@@ -6,7 +6,7 @@ export const PLANS = {
     price: 0,
     priceLabel: '0 ₽',
     dailyMessages: 15,
-    imageUpload: false,
+    imageUpload: true,
     priority: false,
     durationDays: null,
   },

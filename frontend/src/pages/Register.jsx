@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { usePreferences } from '../context/PreferencesContext';
+import AuthFormCard from '../components/auth/AuthFormCard';
 
 const Register = () => {
   const [name, setName] = useState('');
@@ -10,13 +12,14 @@ const Register = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
+  const { t } = usePreferences();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     if (password !== confirmPassword) {
-      setError('Құпия сөздер сәйкес келмейді');
+      setError(t('auth.passwordMismatch'));
       return;
     }
     setLoading(true);
@@ -24,60 +27,85 @@ const Register = () => {
       await register(name, email, password);
       navigate('/');
     } catch (err) {
-      setError(err.message || 'Тіркелу сәтсіз');
+      setError(err.message || t('auth.registerFailed'));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="page-bg flex min-h-screen items-center justify-center px-4 py-8">
-      <div className="card w-full max-w-md p-8">
-        <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-brand text-xl font-bold text-white">
-            B
-          </div>
-          <h1 className="text-2xl font-bold text-brand">Beka AI</h1>
-          <p className="mt-1 text-sm text-surface-subtext">Жаңа аккаунт</p>
-        </div>
+    <AuthFormCard subtitle={t('auth.registerTitle')} tall>
+      <form onSubmit={handleSubmit} className="aida-auth-form">
+        {error && <div className="aida-auth-error">{error}</div>}
 
-        <form onSubmit={handleSubmit}>
-          {error && (
-            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {error}
-            </div>
-          )}
-          {['name', 'email', 'password', 'confirmPassword'].map((field, i) => {
-            const labels = ['Аты-жөні', 'Email', 'Құпия сөз', 'Құпия сөзді растау'];
-            const types = ['text', 'email', 'password', 'password'];
-            const values = [name, email, password, confirmPassword];
-            const setters = [setName, setEmail, setPassword, setConfirmPassword];
-            return (
-              <div key={field} className={i < 3 ? 'mb-4' : 'mb-6'}>
-                <label className="mb-1 block text-sm text-surface-subtext">{labels[i]}</label>
-                <input
-                  type={types[i]}
-                  value={values[i]}
-                  onChange={(e) => setters[i](e.target.value)}
-                  required
-                  minLength={field.includes('password') ? 6 : undefined}
-                  className="input-field"
-                />
-              </div>
-            );
-          })}
-          <button type="submit" disabled={loading} className="btn-primary w-full">
-            {loading ? 'Тіркелуде...' : 'Тіркелу'}
-          </button>
-          <p className="mt-6 text-center text-sm text-surface-subtext">
-            Аккаунт бар ма?{' '}
-            <Link to="/login" className="font-medium text-brand hover:underline">
-              Кіру
-            </Link>
-          </p>
-        </form>
-      </div>
-    </div>
+        <label className="aida-auth-label" htmlFor="reg-name">
+          {t('auth.fullName')}
+        </label>
+        <input
+          id="reg-name"
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+          autoComplete="name"
+          className="aida-auth-input"
+          placeholder={t('auth.namePlaceholder')}
+        />
+
+        <label className="aida-auth-label" htmlFor="reg-email">
+          {t('auth.email')}
+        </label>
+        <input
+          id="reg-email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          autoComplete="email"
+          className="aida-auth-input"
+          placeholder="email@example.com"
+        />
+
+        <label className="aida-auth-label" htmlFor="reg-password">
+          {t('auth.password')}
+        </label>
+        <input
+          id="reg-password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          minLength={6}
+          autoComplete="new-password"
+          className="aida-auth-input"
+        />
+
+        <label className="aida-auth-label" htmlFor="reg-confirm">
+          {t('auth.confirmPassword')}
+        </label>
+        <input
+          id="reg-confirm"
+          type="password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          required
+          minLength={6}
+          autoComplete="new-password"
+          className="aida-auth-input aida-auth-input-last"
+        />
+
+        <button type="submit" disabled={loading} className="aida-auth-btn">
+          {loading ? t('auth.registering') : t('auth.register')}
+        </button>
+
+        <p className="aida-auth-footer">
+          {t('auth.hasAccount')}{' '}
+          <Link to="/login" className="aida-auth-link">
+            {t('auth.login')}
+          </Link>
+        </p>
+      </form>
+    </AuthFormCard>
   );
 };
 

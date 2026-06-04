@@ -1,18 +1,19 @@
 import ReactMarkdown from 'react-markdown';
 import CodeBlock from './CodeBlock';
 
-const ChatMessage = ({ message, isStreaming }) => {
+const ChatMessage = ({ message, isStreaming, theme = 'light' }) => {
   const isUser = message.role === 'user';
+  const dark = theme === 'aida';
 
   return (
-    <div className={`w-full px-4 py-4 md:px-6 ${isUser ? 'bg-surface-muted' : 'bg-white'}`}>
+    <div className={`w-full px-4 py-4 md:px-8 ${dark ? 'aida-messages' : ''} ${isUser && !dark ? 'bg-surface-muted' : !dark ? 'bg-white' : ''}`}>
       <div className={`mx-auto flex max-w-3xl gap-3 ${isUser ? 'flex-row-reverse' : ''}`}>
         <div
-          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xs font-bold text-white ${
-            isUser ? 'bg-brand' : 'bg-surface-subtext'
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[10px] font-semibold text-white ${
+            isUser ? (dark ? 'bg-blue-600' : 'bg-ink') : dark ? 'bg-violet-600/80' : 'bg-slate-500'
           }`}
         >
-          {isUser ? 'Сіз' : 'AI'}
+          {isUser ? 'С' : 'AI'}
         </div>
 
         <div className={`min-w-0 flex-1 ${isUser ? 'text-right' : ''}`}>
@@ -21,17 +22,27 @@ const ChatMessage = ({ message, isStreaming }) => {
               <img
                 src={message.imageUrl}
                 alt="Uploaded"
-                className="max-h-64 rounded-xl border border-surface-border object-contain"
+                className={`max-h-64 rounded-lg border object-contain ${
+                  dark ? 'border-white/20' : 'border-surface-border'
+                }`}
               />
             </div>
           )}
 
           {isUser ? (
-            <div className="inline-block max-w-[90%] rounded-2xl rounded-tr-md bg-brand px-4 py-3 text-left text-white">
+            <div
+              className={`inline-block max-w-[90%] rounded-lg px-4 py-3 text-left text-sm ${
+                dark ? 'aida-msg-user' : 'bg-ink text-white'
+              }`}
+            >
               {message.content}
             </div>
           ) : (
-            <div className="markdown-body rounded-2xl border border-surface-border bg-white px-4 py-3 text-left text-surface-text shadow-sm">
+            <div
+              className={`markdown-body rounded-lg px-4 py-3 text-left text-sm ${
+                dark ? 'aida-msg-ai' : 'border border-surface-border bg-surface-muted text-surface-text'
+              }`}
+            >
               <ReactMarkdown
                 components={{
                   code({ className, children, ...props }) {

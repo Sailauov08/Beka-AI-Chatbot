@@ -7,6 +7,7 @@ const buildUserData = (data) => ({
   _id: data._id,
   name: data.name,
   email: data.email,
+  avatarUrl: data.avatarUrl ?? null,
 });
 
 export const AuthProvider = ({ children }) => {
@@ -90,6 +91,23 @@ export const AuthProvider = ({ children }) => {
     setSubscription(null);
   };
 
+  const updateUser = useCallback((patch) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, ...patch };
+      const stored = localStorage.getItem('user');
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          localStorage.setItem('user', JSON.stringify({ ...parsed, ...patch }));
+        } catch {
+          /* ignore */
+        }
+      }
+      return next;
+    });
+  }, []);
+
   const isAuthenticated = !!token && !!user;
 
   return (
@@ -104,6 +122,7 @@ export const AuthProvider = ({ children }) => {
         register,
         logout,
         refreshSubscription,
+        updateUser,
       }}
     >
       {children}

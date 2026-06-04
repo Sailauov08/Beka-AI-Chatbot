@@ -15,7 +15,7 @@ const ChatSidebar = ({ chats, activeChatId, onNewChat, onSelectChat, onDeleteCha
         }`}
       >
         <div className="border-b border-surface-border p-3 lg:hidden">
-          <span className="font-bold text-brand">Beka AI</span>
+          <span className="text-sm font-semibold text-surface-text">Beka AI</span>
         </div>
         <div className="p-3">
           <button type="button" onClick={onNewChat} className="btn-primary w-full">
@@ -23,7 +23,7 @@ const ChatSidebar = ({ chats, activeChatId, onNewChat, onSelectChat, onDeleteCha
           </button>
         </div>
         {subscription?.plan === 'free' && (
-          <Link to="/pricing" className="mx-3 mb-2 block rounded-xl bg-brand-light px-3 py-2 text-center text-xs text-brand">
+          <Link to="/pricing" className="mx-3 mb-2 block rounded-md border border-surface-border bg-surface-muted px-3 py-2 text-center text-xs text-surface-subtext hover:border-brand hover:text-brand">
             Тариф: {subscription.planName}
             {subscription.dailyRemaining != null && ` · ${subscription.dailyRemaining} қалды`}
           </Link>
@@ -36,7 +36,7 @@ const ChatSidebar = ({ chats, activeChatId, onNewChat, onSelectChat, onDeleteCha
             chats.map((chat) => (
               <div
                 key={chat._id}
-                className={`group mb-1 flex rounded-xl ${
+                className={`group mb-1 flex rounded-md ${
                   activeChatId === chat._id ? 'bg-brand-light' : 'hover:bg-surface-muted'
                 }`}
               >
