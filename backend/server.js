@@ -1,0 +1,104 @@
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import mongoose from 'mongoose';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+import authRoutes from './routes/auth.js';
+import chatRoutes from './routes/chat.js';
+
+dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const app = express();
+app.set('trust proxy', 1);
+
+const PORT = process.env.PORT || 5006;
+
+const frontendDist = path.join(__dirname, '..', 'frontend', 'dist');
+const hasFrontendBuild = fs.existsSync(path.join(frontendDist, 'index.html'));
+const serveFrontend =
+  process.env.SERVE_FRONTEND === 'true' || process.env.NODE_ENV === 'production' || hasFrontendBuild;
+
+const corsOrigins = [
+  'http://localhost:5174',
+  'http://127.0.0.1:5174',
+  `http://localhost:${PORT}`,
+  `http://127.0.0.1:${PORT}`,
+];
+
+if (process.env.CLIENT_URL) {
+  corsOrigins.push(
+    ...process.env.CLIENT_URL.split(',').map((url) => url.trim()).filter(Boolean)
+  );
+}
+
+app.use(cors({
+  origin: corsOrigins,
+  credentials: true,
+}));
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+app.use('/api/auth', authRoutes);
+app.use('/api/chat', chatRoutes);
+
+app.get('/api/health', (req, res) => {
+  res.json({ success: true, message: 'Beka AI Chatbot API is running' });
+});
+
+if (serveFrontend) {
+  app.use(express.static(frontendDist));
+  app.get('/', (req, res) => {
+    res.sendFile(path.join(frontendDist, 'index.html'));
+  });
+  app.get(/^(?!\/api|\/uploads).*/, (req, res) => {
+    res.sendFile(path.join(frontendDist, 'index.html'));
+  });
+} else {
+  app.get('/', (req, res) => {
+    res.status(200).send(
+      'Beka AI API жұмыс істейді. Сайт үшін start-beka.bat іске қосыңыз немесе build-frontend.bat орындаңыз.'
+    );
+  });
+}
+
+const connectDB = async () => {
+  const mongoUri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/ai_chatbot_db';
+
+  try {
+    await mongoose.connect(mongoUri);
+    console.log(`MongoDB connected: ${mongoose.connection.name} @ ${mongoose.connection.host}`);
+  } catch (error) {
+    console.error('MongoDB connection error:', error.message);
+    process.exit(1);
+  }
+};
+
+connectDB();
+
+const geminiKey = process.env.GEMINI_API_KEY;
+if (!geminiKey || geminiKey === 'your_gemini_api_key_here') {
+  console.warn('⚠ GEMINI_API_KEY орнатылмаған — AI жауап бермейді. backend/.env файлын толтырыңыз.');
+} else if (!geminiKey.startsWith('AIza') && !geminiKey.startsWith('AQ.')) {
+  console.warn('⚠ GEMINI_API_KEY форматы танылмады. Google AI Studio кілтін тексеріңіз.');
+}
+
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+  if (serveFrontend) {
+    console.log(`Frontend (production): http://localhost:${PORT}`);
+    console.log('Бір сервер — екі терезе қажет емес.');
+  } else {
+    console.warn('⚠ frontend/dist табылмады — Chrome-да Cannot GET / шығады!');
+    console.log('Шешім: build-frontend.bat, содан кейін start-beka.bat');
+    console.log('Немесе dev: http://localhost:5174 (start-frontend.bat)');
+  }
+});
