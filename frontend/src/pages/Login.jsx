@@ -26,28 +26,31 @@ const Login = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-surface-dark px-4">
-      <div className="w-full max-w-md">
+    <div className="mesh-bg relative flex min-h-screen items-center justify-center overflow-hidden px-4">
+      <div className="pointer-events-none absolute -left-32 top-20 h-72 w-72 rounded-full bg-emerald-500/10 blur-3xl" />
+      <div className="pointer-events-none absolute -right-32 bottom-20 h-72 w-72 rounded-full bg-violet-500/10 blur-3xl" />
+
+      <div className="relative w-full max-w-md">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent text-2xl font-bold text-white">
-            B
+          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-brand shadow-glow">
+            <span className="text-2xl font-bold text-white">B</span>
           </div>
-          <h1 className="text-2xl font-semibold text-white">Beka AI Chatbot</h1>
-          <p className="mt-2 text-sm text-gray-400">Жүйеге кіріңіз</p>
+          <h1 className="gradient-text text-3xl font-bold tracking-tight">Beka AI</h1>
+          <p className="mt-2 text-sm text-zinc-400">Заманауи AI көмекшіңіз</p>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="rounded-2xl border border-gray-700 bg-surface-light p-8 shadow-xl"
+          className="glass glass-border rounded-2xl p-8 shadow-2xl"
         >
           {error && (
-            <div className="mb-4 rounded-lg bg-red-900/30 px-4 py-3 text-sm text-red-300">
+            <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
               {error}
             </div>
           )}
 
           <div className="mb-4">
-            <label htmlFor="email" className="mb-1.5 block text-sm text-gray-400">
+            <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-zinc-400">
               Email
             </label>
             <input
@@ -56,13 +59,13 @@ const Login = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full rounded-lg border border-gray-600 bg-surface-dark px-4 py-3 text-white outline-none transition focus:border-accent"
+              className="w-full rounded-xl border border-zinc-700/80 bg-surface-dark/80 px-4 py-3 text-white outline-none transition focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20"
               placeholder="example@mail.com"
             />
           </div>
 
           <div className="mb-6">
-            <label htmlFor="password" className="mb-1.5 block text-sm text-gray-400">
+            <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-zinc-400">
               Құпия сөз
             </label>
             <input
@@ -72,7 +75,7 @@ const Login = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
-              className="w-full rounded-lg border border-gray-600 bg-surface-dark px-4 py-3 text-white outline-none transition focus:border-accent"
+              className="w-full rounded-xl border border-zinc-700/80 bg-surface-dark/80 px-4 py-3 text-white outline-none transition focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20"
               placeholder="••••••••"
             />
           </div>
@@ -80,14 +83,14 @@ const Login = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-accent py-3 font-medium text-white transition hover:bg-accent-hover disabled:opacity-50"
+            className="w-full rounded-xl bg-gradient-brand py-3.5 font-semibold text-white shadow-glow transition hover:opacity-90 disabled:opacity-50"
           >
             {loading ? 'Кіру...' : 'Кіру'}
           </button>
 
-          <p className="mt-6 text-center text-sm text-gray-400">
+          <p className="mt-6 text-center text-sm text-zinc-500">
             Тіркелмегенсіз бе?{' '}
-            <Link to="/register" className="text-accent hover:underline">
+            <Link to="/register" className="font-medium text-cyan-400 hover:text-cyan-300">
               Тіркелу
             </Link>
           </p>

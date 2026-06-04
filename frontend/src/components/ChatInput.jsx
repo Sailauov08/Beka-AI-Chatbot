@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 
-const ChatInput = ({ onSend, disabled, placeholder }) => {
+const ChatInput = ({ onSend, disabled, placeholder, imageUploadEnabled = true }) => {
   const [message, setMessage] = useState('');
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -75,7 +75,6 @@ const ChatInput = ({ onSend, disabled, placeholder }) => {
     recognition.interimResults = true;
 
     recognition.onstart = () => setIsListening(true);
-
     recognition.onresult = (event) => {
       let transcript = '';
       for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -83,7 +82,6 @@ const ChatInput = ({ onSend, disabled, placeholder }) => {
       }
       setMessage((prev) => prev + transcript);
     };
-
     recognition.onerror = () => setIsListening(false);
     recognition.onend = () => setIsListening(false);
 
@@ -91,27 +89,30 @@ const ChatInput = ({ onSend, disabled, placeholder }) => {
     recognition.start();
   };
 
+  const iconBtn =
+    'shrink-0 rounded-xl p-2.5 text-zinc-400 transition hover:bg-zinc-700/50 hover:text-white disabled:opacity-40';
+
   return (
-    <div className="border-t border-gray-800 bg-surface-dark px-4 py-4">
+    <div className="border-t border-zinc-800/80 bg-surface-dark/80 px-4 py-4 backdrop-blur-xl">
       <form onSubmit={handleSubmit} className="mx-auto max-w-3xl">
         {imagePreview && (
           <div className="relative mb-3 inline-block">
             <img
               src={imagePreview}
               alt="Preview"
-              className="h-20 w-20 rounded-lg border border-gray-600 object-cover"
+              className="h-20 w-20 rounded-xl border border-zinc-600 object-cover shadow-lg"
             />
             <button
               type="button"
               onClick={removeImage}
-              className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-gray-700 text-xs hover:bg-red-600"
+              className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs text-white hover:bg-red-600"
             >
               ×
             </button>
           </div>
         )}
 
-        <div className="relative flex items-end gap-2 rounded-2xl border border-gray-600 bg-surface-light px-4 py-3 shadow-lg focus-within:border-gray-500">
+        <div className="glass glass-border flex items-end gap-2 rounded-2xl px-3 py-2 shadow-glow-sm focus-within:ring-2 focus-within:ring-cyan-500/20">
           <input
             ref={fileInputRef}
             type="file"
@@ -122,18 +123,19 @@ const ChatInput = ({ onSend, disabled, placeholder }) => {
 
           <button
             type="button"
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => {
+              if (!imageUploadEnabled) {
+                alert('Сурет жүктеу Premium жазылымында. Sidebar → Premium');
+                return;
+              }
+              fileInputRef.current?.click();
+            }}
             disabled={disabled}
-            className="shrink-0 rounded-lg p-2 text-gray-400 transition hover:bg-gray-700 hover:text-white disabled:opacity-50"
-            title="Сурет жүктеу"
+            className={`${iconBtn} ${!imageUploadEnabled ? 'opacity-40' : ''}`}
+            title={imageUploadEnabled ? 'Сурет' : 'Premium қажет'}
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </button>
 
@@ -141,18 +143,11 @@ const ChatInput = ({ onSend, disabled, placeholder }) => {
             type="button"
             onClick={toggleMicrophone}
             disabled={disabled}
-            className={`shrink-0 rounded-lg p-2 transition hover:bg-gray-700 disabled:opacity-50 ${
-              isListening ? 'text-red-400 animate-pulse' : 'text-gray-400 hover:text-white'
-            }`}
-            title="Микрофон (дауыспен жазу)"
+            className={`${iconBtn} ${isListening ? 'text-red-400 animate-pulse' : ''}`}
+            title="Микрофон"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
             </svg>
           </button>
 
@@ -161,31 +156,26 @@ const ChatInput = ({ onSend, disabled, placeholder }) => {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={placeholder || 'Хабарламаңызды жазыңыз...'}
+            placeholder={placeholder || 'Beka AI-ға хабарлама жазыңыз...'}
             disabled={disabled}
             rows={1}
-            className="max-h-[200px] min-h-[24px] flex-1 resize-none bg-transparent text-[15px] text-gray-100 placeholder-gray-500 outline-none disabled:opacity-50"
+            className="max-h-[200px] min-h-[28px] flex-1 resize-none bg-transparent py-2 text-[15px] text-zinc-100 placeholder-zinc-500 outline-none disabled:opacity-50"
           />
 
           <button
             type="submit"
             disabled={disabled || (!message.trim() && !image)}
-            className="shrink-0 rounded-lg bg-accent p-2 text-white transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
+            className="shrink-0 rounded-xl bg-gradient-brand p-2.5 text-white shadow-glow transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
             title="Жіберу"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
             </svg>
           </button>
         </div>
 
-        <p className="mt-2 text-center text-xs text-gray-600">
-          Beka AI қателер жасауы мүмкін. Маңызды ақпаратты тексеріңіз.
+        <p className="mt-2.5 text-center text-[11px] text-zinc-600">
+          Beka AI қателер жасауы мүмкін · Маңызды ақпаратты тексеріңіз
         </p>
       </form>
     </div>

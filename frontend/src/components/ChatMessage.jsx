@@ -6,38 +6,38 @@ const ChatMessage = ({ message, isStreaming }) => {
 
   return (
     <div
-      className={`group w-full border-b border-gray-800/50 ${
-        isUser ? 'bg-surface-dark' : 'bg-surface'
+      className={`w-full px-4 py-5 md:px-6 ${
+        isUser ? 'bg-transparent' : 'bg-zinc-900/30'
       }`}
     >
-      <div className="mx-auto flex max-w-3xl gap-4 px-4 py-6 md:px-6">
+      <div className={`mx-auto flex max-w-3xl gap-4 ${isUser ? 'flex-row-reverse' : ''}`}>
         <div
-          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-sm text-sm font-semibold ${
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xs font-bold shadow-lg ${
             isUser
-              ? 'bg-accent text-white'
-              : 'bg-emerald-700 text-white'
+              ? 'bg-gradient-user text-white'
+              : 'bg-gradient-ai text-white'
           }`}
         >
-          {isUser ? 'С' : 'AI'}
+          {isUser ? 'Сіз' : 'AI'}
         </div>
 
-        <div className="min-w-0 flex-1">
+        <div className={`min-w-0 flex-1 ${isUser ? 'text-right' : ''}`}>
           {message.imageUrl && (
-            <div className="mb-3">
+            <div className={`mb-3 ${isUser ? 'flex justify-end' : ''}`}>
               <img
                 src={message.imageUrl}
                 alt="Uploaded"
-                className="max-h-64 max-w-full rounded-lg border border-gray-700 object-contain"
+                className="max-h-64 max-w-full rounded-2xl border border-zinc-700/80 object-contain shadow-lg"
               />
             </div>
           )}
 
           {isUser ? (
-            <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-gray-100">
+            <div className="inline-block max-w-[90%] rounded-2xl rounded-tr-md bg-gradient-user px-4 py-3 text-left text-[15px] leading-relaxed text-white shadow-glow-sm">
               {message.content}
-            </p>
+            </div>
           ) : (
-            <div className="markdown-body text-[15px] leading-relaxed text-gray-100">
+            <div className="markdown-body rounded-2xl rounded-tl-md border border-zinc-800/60 bg-surface-card/80 px-4 py-3 text-left text-[15px] leading-relaxed text-zinc-100">
               <ReactMarkdown
                 components={{
                   code({ className, children, ...props }) {
@@ -61,15 +61,15 @@ const ChatMessage = ({ message, isStreaming }) => {
               </ReactMarkdown>
 
               {isStreaming && !message.content && (
-                <div className="flex items-center gap-1 py-2">
-                  <span className="typing-dot h-2 w-2 rounded-full bg-gray-400" />
-                  <span className="typing-dot h-2 w-2 rounded-full bg-gray-400" />
-                  <span className="typing-dot h-2 w-2 rounded-full bg-gray-400" />
+                <div className="flex items-center gap-1.5 py-2">
+                  <span className="typing-dot h-2 w-2 rounded-full bg-cyan-400" />
+                  <span className="typing-dot h-2 w-2 rounded-full bg-cyan-400" />
+                  <span className="typing-dot h-2 w-2 rounded-full bg-cyan-400" />
                 </div>
               )}
 
               {isStreaming && message.content && (
-                <span className="ml-0.5 inline-block h-4 w-0.5 animate-pulse bg-accent" />
+                <span className="ml-0.5 inline-block h-4 w-0.5 animate-pulse bg-cyan-400" />
               )}
             </div>
           )}

@@ -16,7 +16,43 @@ const handleResponse = async (response) => {
   return data;
 };
 
+export const paymentAPI = {
+  getPlans: async () => {
+    const response = await fetch(`${API_BASE}/payment/plans`);
+    return handleResponse(response);
+  },
+
+  getStatus: async () => {
+    const response = await fetch(`${API_BASE}/payment/status`, {
+      headers: getAuthHeaders(),
+    });
+    return handleResponse(response);
+  },
+
+  createCheckout: async () => {
+    const response = await fetch(`${API_BASE}/payment/checkout`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+    });
+    return handleResponse(response);
+  },
+
+  createPortal: async () => {
+    const response = await fetch(`${API_BASE}/payment/portal`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+    });
+    return handleResponse(response);
+  },
+};
+
 export const authAPI = {
+  me: async () => {
+    const response = await fetch(`${API_BASE}/auth/me`, {
+      headers: getAuthHeaders(),
+    });
+    return handleResponse(response);
+  },
   register: async (name, email, password) => {
     const response = await fetch(`${API_BASE}/auth/register`, {
       method: 'POST',
@@ -89,7 +125,10 @@ export const chatAPI = {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || 'Failed to send message');
+      const err = new Error(errorData.message || 'Failed to send message');
+      err.code = errorData.code;
+      err.upgradeUrl = errorData.upgradeUrl;
+      throw err;
     }
 
     const reader = response.body.getReader();

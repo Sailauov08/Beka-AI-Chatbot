@@ -22,6 +22,28 @@ const userSchema = new mongoose.Schema(
       minlength: [6, 'Password must be at least 6 characters'],
       select: false,
     },
+    subscriptionPlan: {
+      type: String,
+      enum: ['free', 'premium'],
+      default: 'free',
+    },
+    subscriptionStatus: {
+      type: String,
+      enum: ['active', 'canceled', 'past_due', 'trialing'],
+      default: undefined,
+    },
+    premiumUntil: {
+      type: Date,
+      default: null,
+    },
+    dailyMessageCount: {
+      type: Number,
+      default: 0,
+    },
+    dailyMessageDate: {
+      type: String,
+      default: null,
+    },
   },
   {
     timestamps: true,

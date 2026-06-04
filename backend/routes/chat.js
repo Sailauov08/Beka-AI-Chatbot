@@ -6,6 +6,11 @@ import { fileURLToPath } from 'url';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import Chat from '../models/Chat.js';
 import { protect } from '../middleware/auth.js';
+import {
+  canSendMessage,
+  canUploadImage,
+  incrementDailyMessage,
+} from '../utils/subscription.js';
 
 const router = express.Router();
 
@@ -197,6 +202,31 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
       return res.status(400).json({ success: false, message: 'Message is required' });
     }
 
+    const sendCheck = canSendMessage(req.user);
+    if (!sendCheck.allowed) {
+      return res.status(402).json({
+        success: false,
+        message: sendCheck.message,
+        code: 'LIMIT_REACHED',
+        upgradeUrl: '/pricing',
+      });
+    }
+
+    if (req.file) {
+      const imageCheck = canUploadImage(req.user);
+      if (!imageCheck.allowed) {
+        if (req.file.path && fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
+        return res.status(402).json({
+          success: false,
+          message: imageCheck.message,
+          code: 'PREMIUM_REQUIRED',
+          upgradeUrl: '/pricing',
+        });
+      }
+    }
+
     let chat;
     if (chatId) {
       chat = await Chat.findOne({ _id: chatId, userId: req.user._id });
@@ -310,6 +340,7 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
     });
 
     await chat.save();
+    await incrementDailyMessage(req.user);
 
     res.write(`data: ${JSON.stringify({ type: 'done', chatId: chat._id.toString() })}\n\n`);
     res.end();

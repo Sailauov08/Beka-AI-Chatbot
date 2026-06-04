@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 
 import authRoutes from './routes/auth.js';
 import chatRoutes from './routes/chat.js';
+import paymentRoutes, { handleLavaWebhook } from './routes/payment.js';
 
 dotenv.config();
 
@@ -20,9 +21,16 @@ app.set('trust proxy', 1);
 const PORT = process.env.PORT || 5006;
 
 const frontendDist = path.join(__dirname, '..', 'frontend', 'dist');
-const hasFrontendBuild = fs.existsSync(path.join(frontendDist, 'index.html'));
-const serveFrontend =
-  process.env.SERVE_FRONTEND === 'true' || process.env.NODE_ENV === 'production' || hasFrontendBuild;
+const indexHtmlPath = path.join(frontendDist, 'index.html');
+const hasFrontendBuild = fs.existsSync(indexHtmlPath);
+const wantsFrontend =
+  process.env.SERVE_FRONTEND === 'true' || process.env.NODE_ENV === 'production';
+const serveFrontend = hasFrontendBuild && (wantsFrontend || hasFrontendBuild);
+
+if (wantsFrontend && !hasFrontendBuild) {
+  console.error(`⚠ frontend/dist/index.html табылмады: ${indexHtmlPath}`);
+  console.error('Render Build Command: npm run render-build');
+}
 
 const corsOrigins = [
   'http://localhost:5174',
@@ -42,6 +50,8 @@ app.use(cors({
   credentials: true,
 }));
 
+app.post('/api/payment/lava/webhook', express.json(), handleLavaWebhook);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -49,6 +59,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/payment', paymentRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ success: true, message: 'Beka AI Chatbot API is running' });
@@ -57,10 +68,10 @@ app.get('/api/health', (req, res) => {
 if (serveFrontend) {
   app.use(express.static(frontendDist));
   app.get('/', (req, res) => {
-    res.sendFile(path.join(frontendDist, 'index.html'));
+    res.sendFile(indexHtmlPath);
   });
   app.get(/^(?!\/api|\/uploads).*/, (req, res) => {
-    res.sendFile(path.join(frontendDist, 'index.html'));
+    res.sendFile(indexHtmlPath);
   });
 } else {
   app.get('/', (req, res) => {
@@ -89,6 +100,10 @@ if (!geminiKey || geminiKey === 'your_gemini_api_key_here') {
   console.warn('⚠ GEMINI_API_KEY орнатылмаған — AI жауап бермейді. backend/.env файлын толтырыңыз.');
 } else if (!geminiKey.startsWith('AIza') && !geminiKey.startsWith('AQ.')) {
   console.warn('⚠ GEMINI_API_KEY форматы танылмады. Google AI Studio кілтін тексеріңіз.');
+}
+
+if (!process.env.LAVA_API_KEY || !process.env.LAVA_OFFER_ID) {
+  console.warn('⚠ Lava.top бапталмаған — төлем жұмыс істемейді. ТӨЛЕМ-ОРНАТУ.md қараңыз.');
 }
 
 app.listen(PORT, () => {

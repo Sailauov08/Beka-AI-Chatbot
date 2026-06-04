@@ -2,9 +2,19 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import Sidebar from '../components/Sidebar';
 import ChatMessage from '../components/ChatMessage';
 import ChatInput from '../components/ChatInput';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { chatAPI } from '../services/api';
 
+const SUGGESTIONS = [
+  { text: 'JavaScript функциясын түсіндір', icon: '💻' },
+  { text: 'React компоненті жаз', icon: '⚛️' },
+  { text: 'Бұл суретте не көрінеді?', icon: '🖼️' },
+  { text: 'MongoDB схемасын құрастыр', icon: '🗄️' },
+];
+
 const Chat = () => {
+  const { subscription } = useAuth();
   const [chats, setChats] = useState([]);
   const [activeChatId, setActiveChatId] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -122,14 +132,18 @@ const Chat = () => {
         },
       });
     } catch (err) {
-      setError(err.message);
+      const msg =
+        err.code === 'LIMIT_REACHED' || err.code === 'PREMIUM_REQUIRED'
+          ? `${err.message} → /pricing`
+          : err.message;
+      setError(msg);
       setMessages((prev) => prev.slice(0, -2));
       setIsStreaming(false);
     }
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-surface-dark">
+    <div className="mesh-bg flex h-screen overflow-hidden">
       <Sidebar
         chats={chats}
         activeChatId={activeChatId}
@@ -140,47 +154,55 @@ const Chat = () => {
         onClose={() => setSidebarOpen(false)}
       />
 
-      <main className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center gap-3 border-b border-gray-800 px-4 py-3 md:px-6">
+      <main className="flex min-w-0 flex-1 flex-col bg-surface-dark/40">
+        <header className="flex items-center gap-3 border-b border-zinc-800/80 bg-surface-dark/60 px-4 py-3 backdrop-blur-md md:px-6">
           <button
             type="button"
             onClick={() => setSidebarOpen(true)}
-            className="rounded-lg p-2 text-gray-400 hover:bg-gray-700 md:hidden"
+            className="rounded-xl p-2 text-zinc-400 transition hover:bg-zinc-800 hover:text-white md:hidden"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <h1 className="text-lg font-medium text-gray-200">Beka AI</h1>
+          <div className="flex items-center gap-2">
+            <div className="hidden h-8 w-8 items-center justify-center rounded-lg bg-gradient-brand text-xs font-bold sm:flex">
+              B
+            </div>
+            <h1 className="gradient-text text-lg font-semibold">Beka AI</h1>
+          </div>
+          {isStreaming && (
+            <span className="ml-auto flex items-center gap-2 text-xs text-cyan-400">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-cyan-400" />
+              Жауап жазылуда...
+            </span>
+          )}
         </header>
 
         <div className="flex-1 overflow-y-auto">
           {messages.length === 0 ? (
-            <div className="flex h-full flex-col items-center justify-center px-4 text-center">
-              <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-accent/20 text-3xl">
+            <div className="flex h-full flex-col items-center justify-center px-4 py-12 text-center">
+              <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-brand text-4xl shadow-glow">
                 ✨
               </div>
-              <h2 className="mb-2 text-2xl font-semibold text-white">
+              <h2 className="gradient-text mb-3 text-3xl font-bold tracking-tight">
                 Beka AI-ға қош келдіңіз
               </h2>
-              <p className="max-w-md text-gray-400">
+              <p className="max-w-lg text-[15px] leading-relaxed text-zinc-400">
                 Сұрақ қойыңыз, код жаздырыңыз немесе сурет жүктеп Vision арқылы талдаңыз.
+                Дауыспен де жаза аласыз.
               </p>
-              <div className="mt-8 grid gap-3 sm:grid-cols-2">
-                {[
-                  'JavaScript функциясын түсіндір',
-                  'React компоненті жаз',
-                  'Бұл суретте не көрінеді?',
-                  'MongoDB схемасын құрастыр',
-                ].map((suggestion) => (
+              <div className="mt-10 grid w-full max-w-2xl gap-3 sm:grid-cols-2">
+                {SUGGESTIONS.map(({ text, icon }) => (
                   <button
-                    key={suggestion}
+                    key={text}
                     type="button"
-                    onClick={() => handleSend({ message: suggestion, image: null })}
+                    onClick={() => handleSend({ message: text, image: null })}
                     disabled={isStreaming}
-                    className="rounded-xl border border-gray-700 px-4 py-3 text-left text-sm text-gray-300 transition hover:bg-gray-800 disabled:opacity-50"
+                    className="suggestion-card glass glass-border flex items-start gap-3 rounded-2xl px-4 py-4 text-left text-sm text-zinc-300 disabled:opacity-50"
                   >
-                    {suggestion}
+                    <span className="text-xl">{icon}</span>
+                    <span>{text}</span>
                   </button>
                 ))}
               </div>
@@ -204,8 +226,13 @@ const Chat = () => {
 
           {error && (
             <div className="mx-auto max-w-3xl px-4 py-2">
-              <div className="rounded-lg bg-red-900/30 px-4 py-3 text-sm text-red-300">
+              <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
                 {error}
+                {(error.includes('/pricing') || error.includes('Premium')) && (
+                  <Link to="/pricing" className="mt-2 block font-medium text-cyan-400 hover:underline">
+                    Premium сатып алу →
+                  </Link>
+                )}
               </div>
             </div>
           )}
@@ -214,7 +241,8 @@ const Chat = () => {
         <ChatInput
           onSend={handleSend}
           disabled={isStreaming}
-          placeholder={isStreaming ? 'Жауап күтілуде...' : 'Хабарламаңызды жазыңыз...'}
+          imageUploadEnabled={Boolean(subscription?.imageUpload)}
+          placeholder={isStreaming ? 'Жауап күтілуде...' : 'Beka AI-ға хабарлама жазыңыз...'}
         />
       </main>
     </div>

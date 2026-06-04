@@ -2,8 +2,18 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import { protect } from '../middleware/auth.js';
+import { formatSubscriptionForClient } from '../utils/subscription.js';
 
 const router = express.Router();
+
+const userPayload = (user, token) => ({
+  _id: user._id,
+  name: user.name,
+  email: user.email,
+  token,
+  subscription: formatSubscriptionForClient(user),
+});
 
 const generateToken = (userId) => {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
@@ -45,12 +55,7 @@ router.post('/register', async (req, res) => {
     res.status(201).json({
       success: true,
       message: 'User registered successfully',
-      data: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        token,
-      },
+      data: userPayload(user, token),
     });
   } catch (error) {
     console.error('Register error:', error);
@@ -96,12 +101,7 @@ router.post('/login', async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Login successful',
-      data: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        token,
-      },
+      data: userPayload(user, token),
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -109,6 +109,23 @@ router.post('/login', async (req, res) => {
       success: false,
       message: error.message || 'Server error during login',
     });
+  }
+});
+
+// GET /api/auth/me — профиль + жазылым
+router.get('/me', protect, async (req, res) => {
+  try {
+    res.json({
+      success: true,
+      data: {
+        _id: req.user._id,
+        name: req.user.name,
+        email: req.user.email,
+        subscription: formatSubscriptionForClient(req.user),
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
