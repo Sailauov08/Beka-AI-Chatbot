@@ -13,6 +13,9 @@ import { getPublicAppUrl } from './utils/appUrl.js';
 
 dotenv.config();
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const uploadsRoot = path.join(__dirname, 'uploads');
 const avatarsDir = path.join(uploadsRoot, 'avatars');
 for (const dir of [uploadsRoot, avatarsDir]) {
@@ -20,9 +23,6 @@ for (const dir of [uploadsRoot, avatarsDir]) {
     fs.mkdirSync(dir, { recursive: true });
   }
 }
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
 app.set('trust proxy', 1);
