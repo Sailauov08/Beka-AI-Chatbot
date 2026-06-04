@@ -124,9 +124,23 @@ export const chatAPI = {
     return handleResponse(response);
   },
 
-  sendMessageStream: async ({ message, chatId, image, onChunk, onChatId, onDone, onError }) => {
+  sendMessageStream: async ({
+    message,
+    chatId,
+    image,
+    language,
+    signal,
+    onChunk,
+    onChatId,
+    onDone,
+    onError,
+    onAborted,
+  }) => {
     const formData = new FormData();
     formData.append('message', message);
+    if (language) {
+      formData.append('language', language);
+    }
     if (chatId) {
       formData.append('chatId', chatId);
     }
@@ -136,13 +150,23 @@ export const chatAPI = {
 
     const token = localStorage.getItem('token');
 
-    const response = await fetch(`${API_BASE}/chat`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: formData,
-    });
+    let response;
+    try {
+      response = await fetch(`${API_BASE}/chat`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+        signal,
+      });
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        onAborted?.();
+        return { aborted: true };
+      }
+      throw err;
+    }
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -156,33 +180,49 @@ export const chatAPI = {
     const decoder = new TextDecoder();
     let buffer = '';
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+    try {
+      while (true) {
+        if (signal?.aborted) {
+          await reader.cancel().catch(() => {});
+          onAborted?.();
+          return { aborted: true };
+        }
 
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || '';
+        const { done, value } = await reader.read();
+        if (done) break;
 
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          try {
-            const parsed = JSON.parse(line.slice(6));
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
 
-            if (parsed.type === 'chatId' && onChatId) {
-              onChatId(parsed.chatId);
-            } else if (parsed.type === 'chunk' && onChunk) {
-              onChunk(parsed.content);
-            } else if (parsed.type === 'done' && onDone) {
-              onDone(parsed.chatId);
-            } else if (parsed.type === 'error' && onError) {
-              onError(parsed.message);
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const parsed = JSON.parse(line.slice(6));
+
+              if (parsed.type === 'chatId' && onChatId) {
+                onChatId(parsed.chatId);
+              } else if (parsed.type === 'chunk' && onChunk) {
+                onChunk(parsed.content);
+              } else if (parsed.type === 'done' && onDone) {
+                onDone(parsed.chatId);
+              } else if (parsed.type === 'error' && onError) {
+                onError(parsed.message);
+              }
+            } catch {
+              // skip malformed SSE lines
             }
-          } catch {
-            // skip malformed SSE lines
           }
         }
       }
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        onAborted?.();
+        return { aborted: true };
+      }
+      throw err;
     }
+
+    return { aborted: false };
   },
 };

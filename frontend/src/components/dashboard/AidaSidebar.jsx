@@ -57,6 +57,7 @@ const AidaSidebar = ({
   onSectionChange,
   chats = [],
   activeChatId,
+  streamingChatIds,
   onNewChat,
   onSelectChat,
   onDeleteChat,
@@ -136,7 +137,7 @@ const AidaSidebar = ({
         <nav className="flex-1 overflow-y-auto px-1">
           {navMain.map(renderNavItem)}
 
-          {!minimal && activeSection === 'chat' && chats.length > 0 && (
+          {!minimal && chats.length > 0 && (
             <div className="mt-4 px-2">
               <button
                 type="button"
@@ -154,9 +155,14 @@ const AidaSidebar = ({
                         onSelectChat?.(chat._id);
                         onClose?.();
                       }}
-                      className={`aida-chat-item flex-1 ${activeChatId === chat._id ? 'active' : ''}`}
+                      className={`aida-chat-item flex-1 ${activeChatId === chat._id ? 'active' : ''} ${
+                        streamingChatIds?.has(chat._id) ? 'is-streaming' : ''
+                      }`}
                     >
-                      {chat.title || 'Чат'}
+                      <span className="truncate">{chat.title || 'Чат'}</span>
+                      {streamingChatIds?.has(chat._id) && (
+                        <span className="aida-chat-streaming-dot" title={t('chat.streaming')} />
+                      )}
                     </button>
                     <button
                       type="button"

@@ -11,6 +11,7 @@ import {
   canUploadImage,
   incrementDailyMessage,
 } from '../utils/subscription.js';
+import { buildBekaSystemInstruction, wantsNoTranslation } from '../prompts/bekaSystem.js';
 
 const router = express.Router();
 
@@ -196,7 +197,8 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
   let uploadedFilePath = null;
 
   try {
-    const { message, chatId } = req.body;
+    const { message, chatId, language } = req.body;
+    const userLang = ['kk', 'ru', 'en'].includes(language) ? language : 'kk';
 
     if (!message || !message.trim()) {
       return res.status(400).json({ success: false, message: 'Message is required' });
@@ -275,14 +277,30 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
       parts: [{ text: msg.content }],
     }));
 
-    let promptParts = [{ text: message.trim() }];
+    let userText = message.trim();
+    const recentUserTexts = chat.messages
+      .filter((m) => m.role === 'user')
+      .slice(-5)
+      .map((m) => m.content);
+    const noTranslationMode =
+      wantsNoTranslation(userText) || recentUserTexts.some((t) => wantsNoTranslation(t));
+
+    if (noTranslationMode) {
+      const langOnly =
+        userLang === 'ru' ? 'орысша' : userLang === 'en' ? 'ағылшынша' : 'қазақша';
+      userText = `${userText}\n\n[Міндетті: жақша () ішінде ағылшынша аударма ҚОСПА. Жауап тек ${langOnly}.]`;
+    }
+
+    let promptParts = [{ text: userText }];
 
     if (req.file) {
       promptParts = [
         fileToGenerativePart(req.file.path, req.file.mimetype),
-        { text: message.trim() },
+        { text: userText },
       ];
     }
+
+    const systemInstruction = buildBekaSystemInstruction(userLang);
 
     let result = null;
     let lastError = null;
@@ -293,7 +311,10 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
 
       while (attempts < maxAttempts) {
         try {
-          const model = genAI.getGenerativeModel({ model: modelName });
+          const model = genAI.getGenerativeModel({
+            model: modelName,
+            systemInstruction,
+          });
           const chatSession = model.startChat({ history: historyForAI });
           result = await chatSession.sendMessageStream(promptParts);
           console.log(`Gemini model used: ${modelName}`);

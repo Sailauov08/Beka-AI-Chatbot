@@ -8,7 +8,7 @@ const IconMic = () => (
   </svg>
 );
 
-const AidaChatInput = ({ onSend, disabled, imageUploadEnabled = true }) => {
+const AidaChatInput = ({ onSend, onStop, isStreaming = false, imageUploadEnabled = true }) => {
   const { t, speechLocale } = usePreferences();
   const [message, setMessage] = useState('');
   const [image, setImage] = useState(null);
@@ -27,7 +27,8 @@ const AidaChatInput = ({ onSend, disabled, imageUploadEnabled = true }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if ((!message.trim() && !image) || disabled) return;
+    if (isStreaming) return;
+    if ((!message.trim() && !image)) return;
     onSend({ message: message.trim() || t('chat.analyzeImage'), image });
     setMessage('');
     setImage(null);
@@ -38,7 +39,7 @@ const AidaChatInput = ({ onSend, disabled, imageUploadEnabled = true }) => {
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSubmit(e);
+      if (!isStreaming) handleSubmit(e);
     }
   };
 
@@ -100,7 +101,7 @@ const AidaChatInput = ({ onSend, disabled, imageUploadEnabled = true }) => {
           <button
             type="button"
             onClick={() => imageUploadEnabled && fileInputRef.current?.click()}
-            disabled={!imageUploadEnabled}
+            disabled={!imageUploadEnabled || isStreaming}
             className="aida-icon-btn"
             title={t('chat.imageTitle')}
           >
@@ -109,6 +110,7 @@ const AidaChatInput = ({ onSend, disabled, imageUploadEnabled = true }) => {
           <button
             type="button"
             onClick={toggleMic}
+            disabled={isStreaming}
             className={`aida-icon-btn ${isListening ? 'listening' : ''}`}
             title={t('chat.voiceTitle')}
           >
@@ -120,19 +122,28 @@ const AidaChatInput = ({ onSend, disabled, imageUploadEnabled = true }) => {
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={t('chat.placeholder')}
-            disabled={disabled}
+            disabled={isStreaming}
             rows={1}
           />
-          <button
-            type="submit"
-            disabled={disabled || (!message.trim() && !image)}
-            className="aida-send-btn"
-          >
-            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-            </svg>
-            {t('chat.send')}
-          </button>
+          {isStreaming ? (
+            <button type="button" onClick={onStop} className="aida-stop-btn" title={t('chat.stop')}>
+              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                <rect x="6" y="6" width="12" height="12" rx="1" />
+              </svg>
+              {t('chat.stop')}
+            </button>
+          ) : (
+            <button
+              type="submit"
+              disabled={!message.trim() && !image}
+              className="aida-send-btn"
+            >
+              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+              </svg>
+              {t('chat.send')}
+            </button>
+          )}
         </div>
       </form>
     </div>

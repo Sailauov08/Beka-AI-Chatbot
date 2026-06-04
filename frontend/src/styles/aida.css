@@ -287,6 +287,28 @@
   opacity: 0.45;
 }
 
+.aida-stop-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  padding: 0.5rem 0.85rem;
+  border-radius: 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  border: 1px solid rgba(248, 113, 113, 0.5);
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.35);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.aida-stop-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 22px rgba(239, 68, 68, 0.5);
+}
+
 .aida-widget {
   width: 14rem;
   flex-shrink: 0;
@@ -371,18 +393,39 @@
 }
 
 .aida-chat-item {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
   width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   padding: 0.4rem 0.75rem;
   margin: 0.1rem 0.5rem;
   border-radius: 0.375rem;
   font-size: 0.75rem;
   color: rgba(226, 232, 240, 0.6);
   text-align: left;
-  transition: background 0.15s, color 0.15s;
+  border: 1px solid transparent;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.aida-chat-item .truncate {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aida-chat-item.is-streaming {
+  border-color: rgba(34, 211, 238, 0.35);
+}
+
+.aida-chat-streaming-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22d3ee;
+  box-shadow: 0 0 8px #22d3ee;
+  flex-shrink: 0;
+  animation: aida-pulse 1.2s ease-in-out infinite;
 }
 
 .aida-chat-item:hover,

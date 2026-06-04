@@ -9,16 +9,67 @@ import { useAuth } from '../context/AuthContext';
 import { usePreferences } from '../context/PreferencesContext';
 import { chatAPI } from '../services/api';
 
+const DRAFT_CHAT_KEY = '__draft__';
+
+const chatKey = (id) => id || DRAFT_CHAT_KEY;
+
 const Chat = () => {
   const { subscription } = useAuth();
-  const { t } = usePreferences();
+  const { t, prefs } = usePreferences();
   const [chats, setChats] = useState([]);
   const [activeChatId, setActiveChatId] = useState(null);
   const [messages, setMessages] = useState([]);
-  const [isStreaming, setIsStreaming] = useState(false);
+  const [streamingIds, setStreamingIds] = useState(() => new Set());
   const [activeSection, setActiveSection] = useState('dashboard');
   const [error, setError] = useState('');
   const messagesEndRef = useRef(null);
+  const messagesCacheRef = useRef({});
+  const abortControllersRef = useRef(new Map());
+  const activeChatIdRef = useRef(activeChatId);
+
+  useEffect(() => {
+    activeChatIdRef.current = activeChatId;
+  }, [activeChatId]);
+
+  const isActiveChatStreaming = streamingIds.has(chatKey(activeChatId));
+
+  const setStreamingForKey = (key, streaming) => {
+    setStreamingIds((prev) => {
+      const next = new Set(prev);
+      if (streaming) next.add(key);
+      else next.delete(key);
+      return next;
+    });
+  };
+
+  const updateMessagesForKey = useCallback((key, updater) => {
+    const current = messagesCacheRef.current[key] || [];
+    const next = typeof updater === 'function' ? updater([...current]) : updater;
+    messagesCacheRef.current[key] = next;
+    if (chatKey(activeChatIdRef.current) === key) {
+      setMessages(next);
+    }
+    return next;
+  }, []);
+
+  const migrateDraftToChat = useCallback((newChatId) => {
+    if (messagesCacheRef.current[DRAFT_CHAT_KEY]) {
+      messagesCacheRef.current[newChatId] = messagesCacheRef.current[DRAFT_CHAT_KEY];
+      delete messagesCacheRef.current[DRAFT_CHAT_KEY];
+    }
+    const draftAbort = abortControllersRef.current.get(DRAFT_CHAT_KEY);
+    if (draftAbort) {
+      abortControllersRef.current.delete(DRAFT_CHAT_KEY);
+      abortControllersRef.current.set(newChatId, draftAbort);
+    }
+    setStreamingIds((prev) => {
+      if (!prev.has(DRAFT_CHAT_KEY)) return prev;
+      const next = new Set(prev);
+      next.delete(DRAFT_CHAT_KEY);
+      next.add(newChatId);
+      return next;
+    });
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -26,7 +77,7 @@ const Chat = () => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, isStreaming]);
+  }, [messages, streamingIds]);
 
   const loadHistory = useCallback(async () => {
     try {
@@ -41,12 +92,21 @@ const Chat = () => {
     loadHistory();
   }, [loadHistory]);
 
-  const loadChat = async (chatId) => {
+  const loadChat = async (id) => {
     try {
-      const response = await chatAPI.getChat(chatId);
-      setActiveChatId(chatId);
-      setMessages(response.data.messages || []);
+      setActiveChatId(id);
       setActiveSection('chat');
+      setError('');
+
+      if (messagesCacheRef.current[id]) {
+        setMessages(messagesCacheRef.current[id]);
+        return;
+      }
+
+      const response = await chatAPI.getChat(id);
+      const loaded = response.data.messages || [];
+      messagesCacheRef.current[id] = loaded;
+      setMessages(loaded);
     } catch (err) {
       setError(err.message);
     }
@@ -54,39 +114,84 @@ const Chat = () => {
 
   const handleNewChat = () => {
     setActiveChatId(null);
-    setMessages([]);
+    setMessages(messagesCacheRef.current[DRAFT_CHAT_KEY] || []);
     setError('');
     setActiveSection('dashboard');
   };
 
-  const handleDeleteChat = async (chatId) => {
+  const handleDeleteChat = async (id) => {
     try {
-      await chatAPI.deleteChat(chatId);
-      setChats((prev) => prev.filter((c) => c._id !== chatId));
-      if (activeChatId === chatId) handleNewChat();
+      await chatAPI.deleteChat(id);
+      delete messagesCacheRef.current[id];
+      abortControllersRef.current.get(id)?.abort();
+      abortControllersRef.current.delete(id);
+      setStreamingForKey(id, false);
+      setChats((prev) => prev.filter((c) => c._id !== id));
+      if (activeChatId === id) handleNewChat();
     } catch (err) {
       setError(err.message);
     }
   };
 
+  const handleStop = () => {
+    const key = chatKey(activeChatId);
+    abortControllersRef.current.get(key)?.abort();
+  };
+
+  const finishStream = useCallback(
+    async (key, removeEmptyAssistant = false) => {
+      setStreamingForKey(key, false);
+      abortControllersRef.current.delete(key);
+      if (removeEmptyAssistant) {
+        updateMessagesForKey(key, (prev) => {
+          const last = prev[prev.length - 1];
+          if (last?.role === 'assistant' && !last.content?.trim()) {
+            return prev.slice(0, -1);
+          }
+          return prev;
+        });
+      }
+      await loadHistory();
+    },
+    [loadHistory, updateMessagesForKey]
+  );
+
   const handleSend = async ({ message, image }) => {
-    if (isStreaming) return;
+    const key = chatKey(activeChatId);
+    if (streamingIds.has(key)) return;
+
     setError('');
-    setIsStreaming(true);
     setActiveSection('chat');
+    setStreamingForKey(key, true);
+
     const imagePreviewUrl = image ? URL.createObjectURL(image) : null;
     const userMessage = { role: 'user', content: message, imageUrl: imagePreviewUrl };
     const assistantPlaceholder = { role: 'assistant', content: '' };
-    setMessages((prev) => [...prev, userMessage, assistantPlaceholder]);
+
+    updateMessagesForKey(key, (prev) => [...prev, userMessage, assistantPlaceholder]);
+
+    const controller = new AbortController();
+    abortControllersRef.current.set(key, controller);
+
+    let streamChatId = activeChatId;
 
     try {
-      await chatAPI.sendMessageStream({
+      const result = await chatAPI.sendMessageStream({
         message,
         chatId: activeChatId,
         image,
-        onChatId: (id) => setActiveChatId(id),
+        language: prefs.language,
+        signal: controller.signal,
+        onChatId: (id) => {
+          streamChatId = id;
+          if (!activeChatId) {
+            migrateDraftToChat(id);
+            setActiveChatId(id);
+          }
+        },
         onChunk: (chunk) => {
-          setMessages((prev) => {
+          const targetKey = chatKey(streamChatId || activeChatIdRef.current);
+          updateMessagesForKey(targetKey, (prev) => {
             const updated = [...prev];
             const lastIndex = updated.length - 1;
             if (updated[lastIndex]?.role === 'assistant') {
@@ -98,23 +203,34 @@ const Chat = () => {
             return updated;
           });
         },
-        onDone: async () => {
-          setIsStreaming(false);
-          await loadHistory();
+        onDone: async (id) => {
+          await finishStream(chatKey(id || streamChatId || activeChatIdRef.current));
         },
         onError: (msg) => {
           setError(msg);
-          setIsStreaming(false);
+          finishStream(key);
+        },
+        onAborted: () => {
+          finishStream(key);
         },
       });
+
+      if (result?.aborted) {
+        await finishStream(chatKey(streamChatId || activeChatIdRef.current));
+      }
     } catch (err) {
-      setError(err.message);
-      setMessages((prev) => prev.slice(0, -2));
-      setIsStreaming(false);
+      if (err.name !== 'AbortError') {
+        setError(err.message);
+        updateMessagesForKey(key, (prev) => {
+          if (prev.length >= 2) return prev.slice(0, -2);
+          return prev;
+        });
+      }
+      await finishStream(key);
     }
   };
 
-  const showHero = messages.length === 0;
+  const showHero = messages.length === 0 && !isActiveChatStreaming;
 
   return (
     <AidaShell
@@ -123,12 +239,13 @@ const Chat = () => {
         onSectionChange: setActiveSection,
         chats,
         activeChatId,
+        streamingChatIds: streamingIds,
         onNewChat: handleNewChat,
         onSelectChat: loadChat,
         onDeleteChat: handleDeleteChat,
       }}
     >
-        <div className="relative flex min-h-0 flex-1 flex-col h-full">
+      <div className="relative flex min-h-0 flex-1 flex-col h-full">
         <div className="flex min-h-0 flex-1">
           <div className="relative flex min-w-0 flex-1 flex-col">
             {showHero && <AidaHero />}
@@ -147,7 +264,9 @@ const Chat = () => {
                       message={msg}
                       theme="aida"
                       isStreaming={
-                        isStreaming && index === messages.length - 1 && msg.role === 'assistant'
+                        isActiveChatStreaming &&
+                        index === messages.length - 1 &&
+                        msg.role === 'assistant'
                       }
                     />
                   ))}
@@ -157,7 +276,10 @@ const Chat = () => {
 
               {showHero && activeSection === 'schedule' && (
                 <div className="relative z-20 mx-auto mb-4 max-w-sm px-4 text-center">
-                  <Link to="/schedule" className="aida-glass-panel block p-6 transition hover:border-cyan-500/40">
+                  <Link
+                    to="/schedule"
+                    className="aida-glass-panel block p-6 transition hover:border-cyan-500/40"
+                  >
                     <p className="text-sm font-medium text-cyan-200">{t('chat.openSchedule')}</p>
                     <p className="mt-1 text-xs text-slate-400">{t('chat.scheduleHint')}</p>
                   </Link>
@@ -178,12 +300,15 @@ const Chat = () => {
               )}
 
               <div className={`relative z-20 ${showHero ? 'pb-8 pt-[45vh]' : 'pb-4'}`}>
-                {isStreaming && (
-                  <p className="mb-2 text-center text-xs text-cyan-400/80">{t('chat.streaming')}</p>
+                {isActiveChatStreaming && (
+                  <p className="mb-2 text-center text-xs text-cyan-400/80 animate-pulse">
+                    {t('chat.streaming')}
+                  </p>
                 )}
                 <AidaChatInput
                   onSend={handleSend}
-                  disabled={isStreaming}
+                  onStop={handleStop}
+                  isStreaming={isActiveChatStreaming}
                   imageUploadEnabled
                 />
               </div>
@@ -192,7 +317,7 @@ const Chat = () => {
 
           <AidaWidgets />
         </div>
-        </div>
+      </div>
     </AidaShell>
   );
 };
