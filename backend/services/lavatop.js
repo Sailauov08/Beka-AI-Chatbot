@@ -1,10 +1,15 @@
 const LAVA_API_BASE = process.env.LAVA_API_URL || 'https://gate.lava.top';
 
+/** ONE_TIME | MONTHLY | PERIOD_90_DAYS | PERIOD_180_DAYS | PERIOD_YEAR */
+export const getLavaPeriodicity = () =>
+  process.env.LAVA_PERIODICITY || 'MONTHLY';
+
 export const getLavaConfig = () => ({
   apiKey: process.env.LAVA_API_KEY,
   webhookKey: process.env.LAVA_WEBHOOK_API_KEY || process.env.LAVA_API_KEY,
   offerId: process.env.LAVA_OFFER_ID,
   currency: process.env.LAVA_CURRENCY || 'RUB',
+  periodicity: getLavaPeriodicity(),
 });
 
 export const isLavaConfigured = () => {
@@ -34,13 +39,14 @@ const lavaFetch = async (path, options = {}) => {
   return data;
 };
 
-/** Бір реттік төлем — төлем бетінің URL */
-export const createOneTimePayment = async ({ email, offerId, currency, userId }) => {
+/** Lava төлем/invoce — periodicity lava өніміне сәйкес болуы керек */
+export const createLavaPayment = async ({ email, offerId, currency, userId }) => {
+  const config = getLavaConfig();
   const body = {
     email,
     offerId,
-    currency: currency || getLavaConfig().currency,
-    periodicity: 'ONE_TIME',
+    currency: currency || config.currency,
+    periodicity: config.periodicity,
     buyerLanguage: 'RU',
     clientUtm: {
       utm_source: 'beka-ai-chatbot',

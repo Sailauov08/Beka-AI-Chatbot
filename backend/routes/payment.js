@@ -7,7 +7,7 @@ import { formatSubscriptionForClient } from '../utils/subscription.js';
 import {
   isLavaConfigured,
   getLavaConfig,
-  createOneTimePayment,
+  createLavaPayment,
   getProducts,
   verifyWebhookApiKey,
 } from '../services/lavatop.js';
@@ -164,7 +164,7 @@ router.post('/checkout', protect, async (req, res) => {
       status: 'pending',
     });
 
-    const invoice = await createOneTimePayment({
+    const invoice = await createLavaPayment({
       email: req.user.email,
       offerId,
       currency: getLavaConfig().currency,
