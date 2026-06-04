@@ -5,16 +5,22 @@ export default {
     extend: {
       colors: {
         surface: {
-          DEFAULT: '#1a1a1f',
-          light: '#25252d',
-          dark: '#0c0c0f',
-          card: '#1e1e26',
+          DEFAULT: '#ffffff',
+          muted: '#f4f6fb',
+          sidebar: '#f8f9fc',
+          border: '#e8ecf4',
+          text: '#1e293b',
+          subtext: '#64748b',
+        },
+        brand: {
+          DEFAULT: '#5b4cdb',
+          hover: '#4a3bc9',
+          light: '#eef0ff',
+          soft: '#c7d2fe',
         },
         accent: {
-          DEFAULT: '#10b981',
-          hover: '#059669',
-          cyan: '#22d3ee',
-          violet: '#8b5cf6',
+          DEFAULT: '#5b4cdb',
+          hover: '#4a3bc9',
         },
       },
       fontFamily: {
@@ -22,13 +28,12 @@ export default {
         mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
       },
       boxShadow: {
-        glow: '0 0 40px rgba(16, 185, 129, 0.15)',
-        'glow-sm': '0 0 20px rgba(34, 211, 238, 0.2)',
+        card: '0 4px 24px rgba(91, 76, 219, 0.08)',
+        cardHover: '0 8px 32px rgba(91, 76, 219, 0.14)',
       },
       backgroundImage: {
-        'gradient-brand': 'linear-gradient(135deg, #10b981 0%, #22d3ee 50%, #8b5cf6 100%)',
-        'gradient-user': 'linear-gradient(135deg, #059669 0%, #0891b2 100%)',
-        'gradient-ai': 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+        'gradient-brand': 'linear-gradient(135deg, #6d5ce8 0%, #5b4cdb 50%, #7c6df0 100%)',
+        'page-bg': 'linear-gradient(180deg, #f8f9fc 0%, #eef1f8 100%)',
       },
     },
   },

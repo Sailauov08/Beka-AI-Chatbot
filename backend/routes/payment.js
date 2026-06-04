@@ -2,7 +2,7 @@ import express from 'express';
 import User from '../models/User.js';
 import PaymentOrder from '../models/PaymentOrder.js';
 import { protect } from '../middleware/auth.js';
-import { PLANS, PREMIUM_FEATURES } from '../config/subscription.js';
+import { PLANS, PLAN_ORDER, getOfferIdForPlan } from '../config/subscription.js';
 import { formatSubscriptionForClient } from '../utils/subscription.js';
 import {
   isLavaConfigured,
@@ -10,20 +10,12 @@ import {
   createLavaPayment,
   getProducts,
   verifyWebhookApiKey,
+  formatLavaError,
 } from '../services/lavatop.js';
 
 const router = express.Router();
 
-const displayPrice = () =>
-  process.env.PREMIUM_DISPLAY_PRICE ||
-  `${process.env.PREMIUM_AMOUNT || '2990'} ₸ / ${process.env.PREMIUM_DURATION_DAYS || 30} күн`;
-
-const getPremiumDurationDays = () => {
-  const days = parseInt(process.env.PREMIUM_DURATION_DAYS || '30', 10);
-  return Number.isFinite(days) ? days : 30;
-};
-
-const activatePremium = async (user, days) => {
+const activatePlan = async (user, planId, days) => {
   const until = new Date();
   until.setDate(until.getDate() + days);
 
@@ -32,13 +24,12 @@ const activatePremium = async (user, days) => {
     until.setDate(until.getDate() + days);
   }
 
-  user.subscriptionPlan = 'premium';
+  user.subscriptionPlan = planId === 'premium' ? 'pro' : planId;
   user.subscriptionStatus = 'active';
   user.premiumUntil = until;
   await user.save();
 };
 
-/** Lava.top webhook — «Нәтиже платежа» */
 export const handleLavaWebhook = async (req, res) => {
   const apiKeyHeader = req.headers['x-api-key'];
 
@@ -57,27 +48,37 @@ export const handleLavaWebhook = async (req, res) => {
     ];
 
     if (successEvents.includes(eventType)) {
-      const email = data.buyer?.email;
+      const email = data.buyer?.email?.toLowerCase();
       const contractId = data.contractId;
 
       if (!email) {
         return res.status(200).json({ ok: true });
       }
 
-      const user = await User.findOne({ email: email.toLowerCase() });
+      const user = await User.findOne({ email });
       if (user) {
-        const days = getPremiumDurationDays();
-        await activatePremium(user, days);
-
+        let order = null;
         if (contractId) {
-          await PaymentOrder.findOneAndUpdate(
-            { userId: user._id, status: 'pending' },
-            { status: 'paid', lavaContractId: contractId },
-            { sort: { createdAt: -1 } }
-          );
+          order = await PaymentOrder.findOne({ lavaContractId: contractId });
+        }
+        if (!order) {
+          order = await PaymentOrder.findOne({
+            userId: user._id,
+            status: 'pending',
+          }).sort({ createdAt: -1 });
         }
 
-        console.log(`Premium via Lava.top: ${user.email}, event ${eventType}`);
+        const planId = order?.planTier || 'basic';
+        const days = order?.premiumDays || PLANS[planId]?.durationDays || 30;
+        await activatePlan(user, planId, days);
+
+        if (order) {
+          order.status = 'paid';
+          if (contractId) order.lavaContractId = contractId;
+          await order.save();
+        }
+
+        console.log(`Plan ${planId} via Lava: ${user.email}`);
       }
     }
 
@@ -92,11 +93,7 @@ router.get('/plans', (req, res) => {
   res.json({
     success: true,
     data: {
-      free: PLANS.free,
-      premium: PLANS.premium,
-      features: PREMIUM_FEATURES,
-      displayPrice: displayPrice(),
-      durationDays: getPremiumDurationDays(),
+      plans: PLAN_ORDER.map((id) => PLANS[id]),
       paymentsEnabled: isLavaConfigured(),
       provider: 'lava',
     },
@@ -110,16 +107,13 @@ router.get('/status', protect, async (req, res) => {
   });
 });
 
-/** Offer ID табуға көмек (әкімші) */
 router.get('/lava-products', protect, async (req, res) => {
   try {
     if (!isLavaConfigured()) {
       return res.status(503).json({ success: false, message: 'LAVA_API_KEY қойылмаған' });
     }
-
     const products = await getProducts();
     const offers = [];
-
     for (const item of products.items || []) {
       if (item.type === 'PRODUCT' && item.data?.offers) {
         for (const offer of item.data.offers) {
@@ -133,7 +127,6 @@ router.get('/lava-products', protect, async (req, res) => {
         }
       }
     }
-
     res.json({ success: true, data: { offers } });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -142,25 +135,41 @@ router.get('/lava-products', protect, async (req, res) => {
 
 router.post('/checkout', protect, async (req, res) => {
   try {
-    const { offerId } = getLavaConfig();
+    const planId = req.body?.planId || 'basic';
+
+    if (!['basic', 'pro'].includes(planId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Тек Бастау (basic) немесе Про (pro) жоспарын таңдауға болады',
+      });
+    }
+
+    const offerId = getOfferIdForPlan(planId);
+    if (!offerId) {
+      return res.status(503).json({
+        success: false,
+        message: `LAVA_OFFER_ID_${planId.toUpperCase()} орнатылмаған`,
+      });
+    }
 
     if (!isLavaConfigured()) {
       return res.status(503).json({
         success: false,
-        message:
-          'Lava.top бапталмаған. LAVA_API_KEY және LAVA_OFFER_ID қойыңыз (ТӨЛЕМ-ОРНАТУ.md).',
+        message: 'Lava.top бапталмаған (ТӨЛЕМ-ОРНАТУ.md)',
       });
     }
 
+    const plan = PLANS[planId];
     const orderId = `beka_${req.user._id}_${Date.now()}`;
 
     await PaymentOrder.create({
       userId: req.user._id,
       orderId,
-      amount: parseFloat(process.env.PREMIUM_AMOUNT || '0') || 0,
+      amount: plan.price,
       currency: getLavaConfig().currency,
-      description: 'Beka AI Premium',
-      premiumDays: getPremiumDurationDays(),
+      description: `Beka AI ${plan.name}`,
+      planTier: planId,
+      premiumDays: plan.durationDays || 30,
       status: 'pending',
     });
 
@@ -187,14 +196,15 @@ router.post('/checkout', protect, async (req, res) => {
       data: {
         url: invoice.paymentUrl,
         orderId,
+        planId,
         contractId: invoice.id,
       },
     });
   } catch (error) {
-    console.error('Lava checkout error:', error);
-    res.status(500).json({
+    console.error('Lava checkout error:', error.message, 'user:', req.user?.email);
+    res.status(400).json({
       success: false,
-      message: error.message || 'Төлемді бастау сәтсіз',
+      message: formatLavaError(error.message) || 'Төлемді бастау сәтсіз',
     });
   }
 });
@@ -202,7 +212,7 @@ router.post('/checkout', protect, async (req, res) => {
 router.post('/portal', protect, async (req, res) => {
   res.json({
     success: true,
-    data: { message: 'Premium ұзарту: /pricing бетінде қайта төлеңіз' },
+    data: { message: 'Жоспарды өзгерту: /pricing' },
   });
 });
 

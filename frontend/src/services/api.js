@@ -29,10 +29,11 @@ export const paymentAPI = {
     return handleResponse(response);
   },
 
-  createCheckout: async () => {
+  createCheckout: async (planId) => {
     const response = await fetch(`${API_BASE}/payment/checkout`, {
       method: 'POST',
       headers: getAuthHeaders(),
+      body: JSON.stringify({ planId }),
     });
     return handleResponse(response);
   },

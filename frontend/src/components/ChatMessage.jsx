@@ -5,17 +5,11 @@ const ChatMessage = ({ message, isStreaming }) => {
   const isUser = message.role === 'user';
 
   return (
-    <div
-      className={`w-full px-4 py-5 md:px-6 ${
-        isUser ? 'bg-transparent' : 'bg-zinc-900/30'
-      }`}
-    >
-      <div className={`mx-auto flex max-w-3xl gap-4 ${isUser ? 'flex-row-reverse' : ''}`}>
+    <div className={`w-full px-4 py-4 md:px-6 ${isUser ? 'bg-surface-muted' : 'bg-white'}`}>
+      <div className={`mx-auto flex max-w-3xl gap-3 ${isUser ? 'flex-row-reverse' : ''}`}>
         <div
-          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xs font-bold shadow-lg ${
-            isUser
-              ? 'bg-gradient-user text-white'
-              : 'bg-gradient-ai text-white'
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xs font-bold text-white ${
+            isUser ? 'bg-brand' : 'bg-surface-subtext'
           }`}
         >
           {isUser ? 'Сіз' : 'AI'}
@@ -23,21 +17,21 @@ const ChatMessage = ({ message, isStreaming }) => {
 
         <div className={`min-w-0 flex-1 ${isUser ? 'text-right' : ''}`}>
           {message.imageUrl && (
-            <div className={`mb-3 ${isUser ? 'flex justify-end' : ''}`}>
+            <div className={`mb-2 ${isUser ? 'flex justify-end' : ''}`}>
               <img
                 src={message.imageUrl}
                 alt="Uploaded"
-                className="max-h-64 max-w-full rounded-2xl border border-zinc-700/80 object-contain shadow-lg"
+                className="max-h-64 rounded-xl border border-surface-border object-contain"
               />
             </div>
           )}
 
           {isUser ? (
-            <div className="inline-block max-w-[90%] rounded-2xl rounded-tr-md bg-gradient-user px-4 py-3 text-left text-[15px] leading-relaxed text-white shadow-glow-sm">
+            <div className="inline-block max-w-[90%] rounded-2xl rounded-tr-md bg-brand px-4 py-3 text-left text-white">
               {message.content}
             </div>
           ) : (
-            <div className="markdown-body rounded-2xl rounded-tl-md border border-zinc-800/60 bg-surface-card/80 px-4 py-3 text-left text-[15px] leading-relaxed text-zinc-100">
+            <div className="markdown-body rounded-2xl border border-surface-border bg-white px-4 py-3 text-left text-surface-text shadow-sm">
               <ReactMarkdown
                 components={{
                   code({ className, children, ...props }) {
@@ -57,19 +51,14 @@ const ChatMessage = ({ message, isStreaming }) => {
                   },
                 }}
               >
-                {message.content || (isStreaming ? '' : '')}
+                {message.content || ''}
               </ReactMarkdown>
-
               {isStreaming && !message.content && (
-                <div className="flex items-center gap-1.5 py-2">
-                  <span className="typing-dot h-2 w-2 rounded-full bg-cyan-400" />
-                  <span className="typing-dot h-2 w-2 rounded-full bg-cyan-400" />
-                  <span className="typing-dot h-2 w-2 rounded-full bg-cyan-400" />
+                <div className="flex gap-1 py-2">
+                  <span className="typing-dot h-2 w-2 rounded-full" />
+                  <span className="typing-dot h-2 w-2 rounded-full" />
+                  <span className="typing-dot h-2 w-2 rounded-full" />
                 </div>
-              )}
-
-              {isStreaming && message.content && (
-                <span className="ml-0.5 inline-block h-4 w-0.5 animate-pulse bg-cyan-400" />
               )}
             </div>
           )}

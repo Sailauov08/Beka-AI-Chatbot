@@ -7,14 +7,15 @@ import Chat from './pages/Chat';
 import Pricing from './pages/Pricing';
 import PaymentSuccess from './pages/PaymentSuccess';
 import PaymentCancel from './pages/PaymentCancel';
+import Settings from './pages/Settings';
 
 const PublicRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-surface-dark">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+      <div className="page-bg flex h-screen items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-brand border-t-transparent" />
       </div>
     );
   }
@@ -50,6 +51,14 @@ function App() {
         element={
           <ProtectedRoute>
             <Chat />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <Settings />
           </ProtectedRoute>
         }
       />

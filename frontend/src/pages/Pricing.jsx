@@ -1,142 +1,110 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { paymentAPI } from '../services/api';
+import AppLayout from '../components/AppLayout';
+
+const planFeatures = {
+  free: ['Күніне 15 хабарлама', 'Мәтіндік чат', 'Негізгі AI модель'],
+  basic: ['Күніне 80 хабарлама', 'Сурет жүктеу', '30 күн Premium'],
+  pro: ['Шексіз хабарлама', 'Сурет + Vision', 'Жылдам жауап', '30 күн Про'],
+};
 
 const Pricing = () => {
-  const { user, subscription, refreshSubscription, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
-  const [plans, setPlans] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const { subscription, refreshSubscription, isAuthenticated } = useAuth();
+  const [plans, setPlans] = useState([]);
+  const [loadingPlan, setLoadingPlan] = useState(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    paymentAPI.getPlans().then((res) => setPlans(res.data)).catch(() => {});
-    if (isAuthenticated) {
-      refreshSubscription();
-    }
+    paymentAPI.getPlans().then((res) => setPlans(res.data?.plans || [])).catch(() => {});
+    if (isAuthenticated) refreshSubscription();
   }, [isAuthenticated, refreshSubscription]);
 
-  const handleCheckout = async () => {
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
-
+  const handleCheckout = async (planId) => {
     setError('');
-    setLoading(true);
+    setLoadingPlan(planId);
     try {
-      const res = await paymentAPI.createCheckout();
-      if (res.data?.url) {
-        window.location.href = res.data.url;
-      }
+      const res = await paymentAPI.createCheckout(planId);
+      if (res.data?.url) window.location.href = res.data.url;
     } catch (err) {
       setError(err.message);
     } finally {
-      setLoading(false);
+      setLoadingPlan(null);
     }
   };
 
-  const isPremium = subscription?.isPremium;
-  const paymentsOn = plans?.paymentsEnabled ?? subscription?.paymentsEnabled;
+  const currentPlan = subscription?.plan || 'free';
+  const paymentsOn = plans.length > 0;
 
   return (
-    <div className="mesh-bg min-h-screen overflow-y-auto">
-      <header className="border-b border-zinc-800/80 bg-surface-dark/60 px-4 py-4 backdrop-blur-md">
-        <div className="mx-auto flex max-w-4xl items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 text-zinc-400 transition hover:text-white">
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Чатқа оралу
-          </Link>
-          <span className="gradient-text font-semibold">Beka AI · Lava.top</span>
-        </div>
+    <AppLayout showMainNav>
+      <header className="border-b border-surface-border bg-white px-6 py-4">
+        <h1 className="text-xl font-bold text-surface-text">Төлемдер мен тарифтер</h1>
+        <p className="text-sm text-surface-subtext">Lava.top — карта, Kaspi, СБП</p>
       </header>
 
-      <main className="mx-auto max-w-4xl px-4 py-12">
-        <div className="mb-12 text-center">
-          <h1 className="gradient-text mb-3 text-4xl font-bold">Жоспарлар</h1>
-          <p className="text-zinc-400">
-            Premium — Lava.top: карта, Kaspi, СБП және басқа әдістер
-          </p>
-        </div>
-
-        {error && (
-          <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-center text-sm text-red-300">
-            {error}
-          </div>
-        )}
-
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="glass glass-border rounded-2xl p-8">
-            <h2 className="text-xl font-semibold text-zinc-200">Тегін</h2>
-            <p className="mt-2 text-3xl font-bold text-white">0 ₸</p>
-            <ul className="mt-6 space-y-3 text-sm text-zinc-400">
-              <li>✓ Күніне 15 хабарлама</li>
-              <li>✓ Мәтіндік чат</li>
-              <li>✗ Сурет жүктеу</li>
-            </ul>
-            {user && !isPremium && (
-              <p className="mt-6 text-xs text-cyan-400">
-                Қалған: {subscription?.dailyRemaining ?? 15} хабарлама бүгін
-              </p>
-            )}
-          </div>
-
-          <div className="relative overflow-hidden rounded-2xl border border-cyan-500/40 bg-gradient-to-br from-emerald-500/10 via-cyan-500/5 to-violet-500/10 p-8 shadow-glow">
-            <div className="absolute right-4 top-4 rounded-full bg-gradient-brand px-3 py-1 text-xs font-semibold text-white">
-              Ұсынылады
+      <main className="flex-1 overflow-y-auto p-6">
+        <div className="mx-auto max-w-5xl">
+          {error && (
+            <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {error}
             </div>
-            <h2 className="text-xl font-semibold text-white">Premium</h2>
-            <p className="mt-2 text-3xl font-bold gradient-text">
-              {plans?.displayPrice || '2 990 ₸ / ай'}
-            </p>
-            <ul className="mt-6 space-y-3 text-sm text-zinc-300">
-              {(plans?.features || []).map((f) => (
-                <li key={f}>✓ {f}</li>
-              ))}
-            </ul>
+          )}
 
-            {isPremium ? (
-              <div className="mt-8 space-y-3">
-                <p className="text-center text-sm text-emerald-400">✓ Premium белсенді</p>
-                <p className="text-center text-xs text-zinc-500">
-                  Ұзарту үшін төмендегі «Төлеу» батырмасын қайта басыңыз
-                </p>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={handleCheckout}
-                disabled={loading || !paymentsOn}
-                className="mt-8 w-full rounded-xl bg-gradient-brand py-3.5 font-semibold text-white shadow-glow transition hover:opacity-90 disabled:opacity-50"
-              >
-                {loading
-                  ? 'Жүктелуде...'
-                  : paymentsOn
-                    ? '💳 Lava.top — төлеу'
-                    : 'Lava.top әлі бапталмаған'}
-              </button>
-            )}
+          <div className="grid gap-6 md:grid-cols-3">
+            {plans.map((plan) => {
+              const isCurrent = currentPlan === plan.id;
+              const isPro = plan.id === 'pro';
+              const features = planFeatures[plan.id] || [];
+
+              return (
+                <div
+                  key={plan.id}
+                  className={`card relative flex flex-col p-6 ${isPro ? 'border-brand ring-2 ring-brand/20' : ''}`}
+                >
+                  {isPro && (
+                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-brand px-3 py-1 text-xs font-semibold text-white">
+                      Ұсынылады
+                    </span>
+                  )}
+                  <h2 className="text-lg font-bold text-surface-text">{plan.name}</h2>
+                  <p className={`mt-2 text-3xl font-bold ${isPro ? 'text-brand' : 'text-surface-text'}`}>
+                    {plan.priceLabel}
+                  </p>
+                  <ul className="mt-6 flex-1 space-y-2 text-sm text-surface-subtext">
+                    {features.map((f) => (
+                      <li key={f}>✓ {f}</li>
+                    ))}
+                  </ul>
+
+                  {plan.id === 'free' ? (
+                    <p className="mt-6 text-center text-sm text-surface-subtext">
+                      {isCurrent ? '✓ Ағымдағы жоспар' : 'Әдепкі жоспар'}
+                    </p>
+                  ) : isCurrent ? (
+                    <p className="mt-6 text-center text-sm font-medium text-brand">✓ Белсенді</p>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleCheckout(plan.id)}
+                      disabled={loadingPlan === plan.id || !paymentsOn}
+                      className={`mt-6 w-full ${isPro ? 'btn-primary' : 'btn-secondary border-brand text-brand'}`}
+                    >
+                      {loadingPlan === plan.id ? 'Жүктелуде...' : `${plan.name} — төлеу`}
+                    </button>
+                  )}
+                </div>
+              );
+            })}
           </div>
-        </div>
 
-        <div className="glass glass-border mt-10 rounded-2xl p-6 text-sm text-zinc-500">
-          <p className="mb-2 font-medium text-zinc-400">Қалай жұмыс істейді?</p>
-          <ul className="list-inside list-disc space-y-1">
-            <li>Төлем Lava.top арқылы — қауіпсіз төлем шлюзі</li>
-            <li>Ақша сіздің Lava.top балансыңызға түседі</li>
-            <li>Premium {plans?.durationDays || 30} күнге белсенділенеді</li>
-          </ul>
-          {!paymentsOn && (
-            <p className="mt-4 text-amber-400/90">
-              Әкімші Lava.top кілттерін орнатқаннан кейін төлем іске қосылады (ТӨЛЕМ-ОРНАТУ.md).
-            </p>
+          {!paymentsOn && plans.length === 0 && (
+            <p className="mt-8 text-center text-surface-subtext">Жоспарлар жүктелуде...</p>
           )}
         </div>
       </main>
-    </div>
+    </AppLayout>
   );
 };
 

@@ -14,7 +14,58 @@ export const getLavaConfig = () => ({
 
 export const isLavaConfigured = () => {
   const { apiKey, offerId } = getLavaConfig();
-  return Boolean(apiKey && offerId);
+  const hasOffer =
+    process.env.LAVA_OFFER_ID_BASIC ||
+    process.env.LAVA_OFFER_ID_PRO ||
+    offerId;
+  return Boolean(apiKey && hasOffer);
+};
+
+/** Lava-ға жіберу алдында email тазалау */
+export const normalizeBuyerEmail = (email) =>
+  String(email || '')
+    .trim()
+    .toLowerCase();
+
+const getMerchantEmails = () =>
+  (process.env.LAVA_MERCHANT_EMAIL || process.env.OWNER_EMAIL || '')
+    .split(',')
+    .map((e) => normalizeBuyerEmail(e))
+    .filter(Boolean);
+
+/**
+ * Lava «Incorrect email to purchase» — әдетте:
+ * - сатушы (автор) өз email-імен сатып алуға тырысады
+ * - email форматы жарамсыз
+ */
+export const prepareBuyerEmail = (email) => {
+  const normalized = normalizeBuyerEmail(email);
+
+  if (!normalized || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) {
+    throw new Error(
+      'Email дұрыс емес. Сайттағы профиль email-ін тексеріңіз (мысалы name@gmail.com).'
+    );
+  }
+
+  const merchantEmails = getMerchantEmails();
+  if (merchantEmails.includes(normalized)) {
+    throw new Error(
+      'Бұл email — сіздің Lava автор аккаунтыңыз. Өз өніміңізді осы email-мен сатып ала алмайсыз. Басқа email-мен жаңа аккаунт тіркеліңіз немесе досыңызға тестілеңіз.'
+    );
+  }
+
+  return normalized;
+};
+
+export const formatLavaError = (message) => {
+  const msg = message || '';
+  if (msg.toLowerCase().includes('incorrect email')) {
+    return (
+      'Lava бұл email-мен төлемге рұқсат бермеді. ' +
+      'Өз Lava автор email-іңізбен тіркелмеңіз — басқа email қолданыңыз (дос тесті).'
+    );
+  }
+  return msg;
 };
 
 const lavaFetch = async (path, options = {}) => {
@@ -42,8 +93,9 @@ const lavaFetch = async (path, options = {}) => {
 /** Lava төлем/invoce — periodicity lava өніміне сәйкес болуы керек */
 export const createLavaPayment = async ({ email, offerId, currency, userId }) => {
   const config = getLavaConfig();
+  const buyerEmail = prepareBuyerEmail(email);
   const body = {
-    email,
+    email: buyerEmail,
     offerId,
     currency: currency || config.currency,
     periodicity: config.periodicity,

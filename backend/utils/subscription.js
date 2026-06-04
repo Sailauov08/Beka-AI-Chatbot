@@ -5,22 +5,39 @@ const isOwnerEmail = (email) => {
   return owner && email?.toLowerCase() === owner;
 };
 
-export const isPremiumActive = (user) => {
-  if (!user) return false;
-  if (isOwnerEmail(user.email)) return true;
+const normalizePlanId = (plan) => {
+  if (plan === 'premium') return 'pro';
+  return plan || 'free';
+};
 
-  if (user.subscriptionPlan === 'premium') {
-    if (user.subscriptionStatus === 'active') return true;
-    if (user.premiumUntil && new Date(user.premiumUntil) > new Date()) return true;
+export const getActivePlanId = (user) => {
+  if (!user) return 'free';
+  if (isOwnerEmail(user.email)) return 'pro';
+
+  const plan = normalizePlanId(user.subscriptionPlan);
+  if (plan === 'free') return 'free';
+
+  const paidPlans = ['basic', 'pro'];
+  if (paidPlans.includes(plan)) {
+    if (user.subscriptionStatus === 'active') return plan;
+    if (user.premiumUntil && new Date(user.premiumUntil) > new Date()) return plan;
   }
 
-  return false;
+  return 'free';
 };
 
 export const getUserPlan = (user) => {
-  if (isPremiumActive(user)) return PLANS.premium;
-  return PLANS.free;
+  const id = getActivePlanId(user);
+  return PLANS[id] || PLANS.free;
 };
+
+export const isPaidPlan = (user) => {
+  const id = getActivePlanId(user);
+  return id === 'basic' || id === 'pro';
+};
+
+/** Кері үйлесімдік */
+export const isPremiumActive = (user) => isPaidPlan(user);
 
 const todayKey = () => new Date().toISOString().slice(0, 10);
 
@@ -33,12 +50,13 @@ export const resetDailyCountIfNeeded = (user) => {
 };
 
 export const canSendMessage = (user) => {
-  if (isPremiumActive(user)) {
+  const plan = getUserPlan(user);
+  if (plan.dailyMessages == null) {
     return { allowed: true, remaining: null };
   }
 
   resetDailyCountIfNeeded(user);
-  const limit = PLANS.free.dailyMessages;
+  const limit = plan.dailyMessages;
   const used = user.dailyMessageCount || 0;
   const remaining = Math.max(0, limit - used);
 
@@ -46,8 +64,7 @@ export const canSendMessage = (user) => {
     return {
       allowed: false,
       remaining: 0,
-      message:
-        `Тегін күнделікті лимит (${limit} хабарлама) аяқталды. Premium сатып алыңыз — /pricing`,
+      message: `Күнделікті лимит (${limit}) аяқталды. Жоспарды жаңартыңыз — /pricing`,
     };
   }
 
@@ -55,38 +72,45 @@ export const canSendMessage = (user) => {
 };
 
 export const canUploadImage = (user) => {
-  if (isPremiumActive(user)) return { allowed: true };
+  const plan = getUserPlan(user);
+  if (plan.imageUpload) return { allowed: true };
   return {
     allowed: false,
-    message: 'Сурет жүктеу тек Premium пайдаланушыларға. /pricing бетіне өтіңіз.',
+    message: 'Сурет жүктеу Бастау немесе Про жоспарында. /pricing',
   };
 };
 
 export const incrementDailyMessage = async (user) => {
-  if (isPremiumActive(user)) return;
+  const plan = getUserPlan(user);
+  if (plan.dailyMessages == null) return;
   resetDailyCountIfNeeded(user);
   user.dailyMessageCount = (user.dailyMessageCount || 0) + 1;
   await user.save();
 };
 
 export const formatSubscriptionForClient = (user) => {
-  const premium = isPremiumActive(user);
-  const plan = premium ? PLANS.premium : PLANS.free;
+  const planId = getActivePlanId(user);
+  const plan = PLANS[planId] || PLANS.free;
   resetDailyCountIfNeeded(user);
 
   return {
-    plan: premium ? 'premium' : 'free',
+    plan: planId,
     planName: plan.name,
-    isPremium: premium,
+    isPremium: planId !== 'free',
+    isPro: planId === 'pro',
     subscriptionStatus: user.subscriptionStatus || null,
     premiumUntil: user.premiumUntil || null,
-    dailyLimit: PLANS.free.dailyMessages,
+    dailyLimit: plan.dailyMessages,
     dailyUsed: user.dailyMessageCount || 0,
-    dailyRemaining: premium
-      ? null
-      : Math.max(0, PLANS.free.dailyMessages - (user.dailyMessageCount || 0)),
+    dailyRemaining:
+      plan.dailyMessages == null
+        ? null
+        : Math.max(0, plan.dailyMessages - (user.dailyMessageCount || 0)),
     imageUpload: plan.imageUpload,
-    paymentsEnabled: Boolean(process.env.LAVA_API_KEY && process.env.LAVA_OFFER_ID),
+    paymentsEnabled: Boolean(
+      process.env.LAVA_API_KEY &&
+        (process.env.LAVA_OFFER_ID_BASIC || process.env.LAVA_OFFER_ID)
+    ),
     paymentProvider: 'lava',
   };
 };

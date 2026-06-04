@@ -22,6 +22,11 @@ const paymentOrderSchema = new mongoose.Schema(
       default: 'pending',
     },
     lavaContractId: { type: String, default: null },
+    planTier: {
+      type: String,
+      enum: ['basic', 'pro'],
+      default: 'basic',
+    },
     premiumDays: { type: Number, default: 30 },
   },
   { timestamps: true }
