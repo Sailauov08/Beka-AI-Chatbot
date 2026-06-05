@@ -270,15 +270,14 @@ const Chat = () => {
     >
       <div className="relative flex min-h-0 flex-1 flex-col h-full">
         <div className="flex min-h-0 flex-1">
-          <div className="relative flex min-w-0 flex-1 flex-col">
+          <div className="relative flex min-w-0 flex-1 flex-col min-h-0">
             {showHero && <AidaHero />}
             {showHero && <div className="aida-orb">AI</div>}
+            <div className="xl:hidden">
+              <AidaWidgets variant="corner" />
+            </div>
 
-            <div
-              className={`relative z-10 flex min-h-0 flex-1 flex-col ${
-                showHero ? 'justify-end' : ''
-              }`}
-            >
+            <div className="relative z-10 flex min-h-0 flex-1 flex-col">
               {!showHero && (
                 <div className="flex-1 overflow-y-auto pt-14 pb-4">
                   {messages.map((msg, index) => (
@@ -322,30 +321,24 @@ const Chat = () => {
                 </div>
               )}
 
-              <div className="xl:hidden">
-                {showHero ? (
-                  <AidaWidgets variant="mobile" />
-                ) : (
-                  <AidaWidgets variant="mobile-compact" />
-                )}
-              </div>
-
-              <div className={`relative z-20 aida-chat-input-area ${showHero ? 'aida-chat-input-area--hero' : ''}`}>
-                {isActiveChatStreaming && (
-                  <p className="mb-2 text-center text-xs aida-text-accent-dim animate-pulse">
-                    {streamStatus === 'thinking'
-                      ? t('chat.thinking')
-                      : streamStatus === 'generating'
-                        ? t('chat.streaming')
-                        : t('chat.thinking')}
-                  </p>
-                )}
-                <AidaChatInput
-                  onSend={handleSend}
-                  onStop={handleStop}
-                  isStreaming={isActiveChatStreaming}
-                  imageUploadEnabled
-                />
+              <div className={`aida-chat-footer mt-auto ${showHero ? 'aida-chat-footer--hero' : ''}`}>
+                <div className="aida-chat-input-area">
+                  {isActiveChatStreaming && (
+                    <p className="mb-2 text-center text-xs aida-text-accent-dim animate-pulse">
+                      {streamStatus === 'thinking'
+                        ? t('chat.thinking')
+                        : streamStatus === 'generating'
+                          ? t('chat.streaming')
+                          : t('chat.thinking')}
+                    </p>
+                  )}
+                  <AidaChatInput
+                    onSend={handleSend}
+                    onStop={handleStop}
+                    isStreaming={isActiveChatStreaming}
+                    imageUploadEnabled
+                  />
+                </div>
               </div>
             </div>
           </div>

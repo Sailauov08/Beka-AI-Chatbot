@@ -9,14 +9,14 @@ const AidaShell = ({ children, chatSidebarProps }) => {
   const isChat = location.pathname === '/';
 
   return (
-    <div className="aida-shell flex h-[100dvh] min-h-screen overflow-hidden">
+    <div className="aida-shell flex overflow-hidden">
       <AidaSidebar
         minimal={!isChat}
         {...(isChat ? chatSidebarProps : {})}
         mobileOpen={mobileOpen}
         onClose={() => setMobileOpen(false)}
       />
-      <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
+      <div className="aida-main-panel relative flex min-w-0 flex-1 flex-col overflow-hidden">
         <button
           type="button"
           onClick={() => setMobileOpen(true)}

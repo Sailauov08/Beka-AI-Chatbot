@@ -18,7 +18,7 @@ const loadCityId = () => {
   }
 };
 
-/** @param {{ variant?: 'sidebar' | 'mobile' | 'mobile-compact' }} props */
+/** @param {{ variant?: 'sidebar' | 'corner' }} props */
 const AidaWidgets = ({ variant = 'sidebar' }) => {
   const { user, subscription } = useAuth();
   const { t, prefs, locale } = usePreferences();
@@ -45,7 +45,7 @@ const AidaWidgets = ({ variant = 'sidebar' }) => {
   }, [weather?.updatedAt, locale]);
 
   const refreshMinutes = WEATHER_REFRESH_MS / 60000;
-  const citySelectId = variant === 'sidebar' ? 'weather-city' : `weather-city-${variant}`;
+  const citySelectId = variant === 'sidebar' ? 'weather-city' : 'weather-city-corner';
 
   const citySelect = (
     <>
@@ -54,7 +54,7 @@ const AidaWidgets = ({ variant = 'sidebar' }) => {
       </label>
       <select
         id={citySelectId}
-        className={`aida-weather-select ${variant === 'mobile-compact' ? 'aida-weather-select--compact' : 'mt-2 w-full'}`}
+        className={`aida-weather-select ${variant === 'corner' ? 'aida-weather-select--corner' : 'mt-2 w-full'}`}
         value={cityId}
         onChange={(e) => setCityId(e.target.value)}
       >
@@ -68,43 +68,45 @@ const AidaWidgets = ({ variant = 'sidebar' }) => {
   );
 
   const weatherContent = (
-    <div className={`${refreshing ? 'aida-weather-pulse' : ''} ${variant === 'mobile-compact' ? '' : 'mt-3 min-h-[3.5rem]'}`}>
+    <div className={`${refreshing ? 'aida-weather-pulse' : ''} ${variant === 'corner' ? '' : 'mt-3 min-h-[3.5rem]'}`}>
       {loading && !weather && (
-        <p className="text-xs text-slate-400 animate-pulse">{t('weather.loading')}</p>
+        <p className={`text-slate-400 animate-pulse ${variant === 'corner' ? 'text-[10px]' : 'text-xs'}`}>
+          {t('weather.loading')}
+        </p>
       )}
       {!loading && error && !weather && (
-        <p className="text-xs text-red-300">{t('weather.error')}</p>
+        <p className={`text-red-300 ${variant === 'corner' ? 'text-[10px]' : 'text-xs'}`}>{t('weather.error')}</p>
       )}
       {weather && presentation && (
         <>
-          <div className={`flex items-center gap-3 ${variant === 'mobile-compact' ? 'gap-2' : ''}`}>
+          <div className={`flex items-center ${variant === 'corner' ? 'gap-1.5' : 'gap-3'}`}>
             <div
               className={`flex shrink-0 items-center justify-center rounded-full ${
-                variant === 'mobile-compact' ? 'h-8 w-8 text-lg' : 'h-11 w-11 text-2xl'
+                variant === 'corner' ? 'h-6 w-6 text-sm' : 'h-11 w-11 text-2xl'
               } ${weather.isDay ? 'bg-amber-500/20' : 'bg-indigo-500/25'}`}
             >
               {presentation.icon}
             </div>
             <div className="min-w-0 flex-1">
-              <p className={`font-semibold text-white ${variant === 'mobile-compact' ? 'text-base' : 'text-xl'}`}>
-                {weather.temp}°C
-                {variant !== 'mobile-compact' && weather.feelsLike !== weather.temp && (
+              <p className={`font-semibold text-white ${variant === 'corner' ? 'text-sm leading-none' : 'text-xl'}`}>
+                {weather.temp}°
+                {variant !== 'corner' && weather.feelsLike !== weather.temp && (
                   <span className="ml-1 text-sm font-normal text-slate-400">
                     ({t('weather.feelsLike')} {weather.feelsLike}°)
                   </span>
                 )}
               </p>
-              <p className={`font-medium aida-text-accent-soft ${variant === 'mobile-compact' ? 'text-[11px]' : 'text-xs'}`}>
-                {t(presentation.descKey)}
-              </p>
-              {variant !== 'mobile-compact' && (
+              {variant !== 'corner' && (
+                <p className="text-xs font-medium aida-text-accent-soft">{t(presentation.descKey)}</p>
+              )}
+              {variant !== 'corner' && (
                 <p className="truncate text-[10px] text-slate-500">
                   {t(`weather.cities.${cityId}`)} · {t('weather.humidity')} {weather.humidity}% ·{' '}
                   {t('weather.wind')} {weather.wind} {t('weather.windUnit')}
                 </p>
               )}
             </div>
-            {(variant === 'mobile' || variant === 'mobile-compact') && weather && (
+            {variant === 'corner' && (
               <button
                 type="button"
                 onClick={refresh}
@@ -117,7 +119,7 @@ const AidaWidgets = ({ variant = 'sidebar' }) => {
             )}
           </div>
 
-          {variant !== 'mobile-compact' && weather.hourly?.length > 1 && (
+          {variant !== 'corner' && weather.hourly?.length > 1 && (
             <div className="mt-3 border-t border-white/10 pt-3">
               <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
                 {t('weather.nextHours')}
@@ -143,7 +145,7 @@ const AidaWidgets = ({ variant = 'sidebar' }) => {
             </div>
           )}
 
-          {variant !== 'mobile-compact' && updatedLabel && (
+          {variant !== 'corner' && updatedLabel && (
             <p className="mt-2 text-[9px] text-slate-600">
               {t('weather.updatedPrefix')} {updatedLabel}
               {' · '}
@@ -155,28 +157,12 @@ const AidaWidgets = ({ variant = 'sidebar' }) => {
     </div>
   );
 
-  if (variant === 'mobile') {
+  if (variant === 'corner') {
     return (
-      <div className="aida-widget-mobile relative z-20 mx-auto w-full max-w-lg px-3 pb-2">
-        <div className="aida-glass-panel p-3">
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-              {t('weather.title')}
-            </p>
-          </div>
+      <div className="aida-weather-corner" title={t('weather.title')}>
+        <div className="aida-glass-panel aida-weather-corner-inner">
           {citySelect}
           {weatherContent}
-        </div>
-      </div>
-    );
-  }
-
-  if (variant === 'mobile-compact') {
-    return (
-      <div className="aida-widget-mobile-compact relative z-20 mx-auto w-full max-w-lg px-3 pb-1">
-        <div className="aida-glass-panel flex items-center gap-2 p-2">
-          {citySelect}
-          <div className="min-w-0 flex-1">{weatherContent}</div>
         </div>
       </div>
     );
