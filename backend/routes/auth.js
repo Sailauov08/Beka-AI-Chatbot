@@ -49,6 +49,16 @@ const removeAvatarFile = (avatarPath) => {
 const generateToken = (userId) =>
   jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '30d' });
 
+const otpSendMessage = (channel, fakeMode, purpose) => {
+  if (fakeMode) {
+    return 'Растау коды төменде көрсетіледі';
+  }
+  if (purpose === 'login') {
+    return channel === 'email' ? 'Email-ге кіру коды жіберілді' : 'Телефонға SMS коды жіберілді';
+  }
+  return channel === 'email' ? 'Email-ге растау коды жіберілді' : 'Телефонға SMS коды жіберілді';
+};
+
 const userExists = async (target, channel) => {
   if (channel === 'email') {
     return User.findOne({ email: target });
@@ -112,15 +122,13 @@ router.post('/register/send-code', async (req, res) => {
 
     res.json({
       success: true,
-      message:
-        parsed.channel === 'email'
-          ? 'Email-ге растау коды жіберілді'
-          : 'Телефонға SMS коды жіберілді',
+      message: otpSendMessage(parsed.channel, otpResult.fakeMode, 'register'),
       data: {
         target: parsed.target,
         channel: parsed.channel,
         expiresInSec: otpResult.expiresInSec,
         devCode: otpResult.devCode,
+        fakeMode: otpResult.fakeMode,
       },
     });
   } catch (error) {
@@ -235,15 +243,13 @@ router.post('/login/send-code', async (req, res) => {
 
     res.json({
       success: true,
-      message:
-        channel === 'email'
-          ? 'Email-ге кіру коды жіберілді'
-          : 'Телефонға SMS коды жіберілді',
+      message: otpSendMessage(channel, otpResult.fakeMode, 'login'),
       data: {
         target,
         channel,
         expiresInSec: otpResult.expiresInSec,
         devCode: otpResult.devCode,
+        fakeMode: otpResult.fakeMode,
       },
     });
   } catch (error) {

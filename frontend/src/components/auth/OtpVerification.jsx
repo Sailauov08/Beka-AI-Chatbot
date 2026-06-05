@@ -24,15 +24,16 @@ const OtpVerification = ({
       {error && <div className="aida-auth-error">{error}</div>}
 
       <p className="aida-otp-hint">
-        {channel === 'phone' ? t('auth.otpSentPhone') : t('auth.otpSentEmail')}
+        {devCode ? t('auth.otpFakeHint') : channel === 'phone' ? t('auth.otpSentPhone') : t('auth.otpSentEmail')}
         <br />
         <span className="aida-otp-target">{target}</span>
       </p>
 
       {devCode && (
-        <p className="aida-otp-dev">
-          {t('auth.devCode')}: <strong>{devCode}</strong>
-        </p>
+        <div className="aida-otp-dev">
+          <span className="aida-otp-dev-label">{t('auth.devCode')}</span>
+          <strong className="aida-otp-dev-code">{devCode}</strong>
+        </div>
       )}
 
       <label className="aida-auth-label" htmlFor="otp-code">
