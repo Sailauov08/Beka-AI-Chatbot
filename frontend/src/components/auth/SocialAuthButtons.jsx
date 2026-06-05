@@ -1,7 +1,6 @@
+import { useEffect, useState } from 'react';
 import { usePreferences } from '../../context/PreferencesContext';
-
-// Google қайта қосу: google-дан alwaysDisabled: true алып тастаңыз,
-// authAPI.getOAuthProviders() логикасын қайтарыңыз (git тарихынан).
+import { authAPI } from '../../services/api';
 
 const IconGoogle = () => (
   <svg className="aida-social-icon" viewBox="0 0 24 24" aria-hidden>
@@ -35,7 +34,7 @@ const icons = {
 };
 
 const providers = [
-  { id: 'google', label: 'Google', iconClass: 'aida-social-google', alwaysDisabled: true },
+  { id: 'google', label: 'Google', iconClass: 'aida-social-google' },
   { id: 'vk', label: 'VK', iconClass: 'aida-social-vk', alwaysDisabled: true },
   { id: 'facebook', label: 'Facebook', iconClass: 'aida-social-facebook', alwaysDisabled: true },
   { id: 'apple', label: 'Apple', iconClass: 'aida-social-apple', alwaysDisabled: true },
@@ -43,6 +42,23 @@ const providers = [
 
 const SocialAuthButtons = () => {
   const { t } = usePreferences();
+  const [googleEnabled, setGoogleEnabled] = useState(false);
+
+  useEffect(() => {
+    authAPI.getOAuthProviders().then((res) => setGoogleEnabled(!!res.data?.google)).catch(() => {});
+  }, []);
+
+  const isClickable = (p) => {
+    if (p.alwaysDisabled) return false;
+    if (p.id === 'google') return googleEnabled;
+    return false;
+  };
+
+  const getTitle = (p) => {
+    if (p.alwaysDisabled) return t('auth.socialSoon');
+    if (p.id === 'google' && googleEnabled) return p.label;
+    return t('auth.oauthNotConfigured');
+  };
 
   return (
     <div className="aida-social-auth">
@@ -52,15 +68,17 @@ const SocialAuthButtons = () => {
       <div className="aida-social-grid">
         {providers.map((p) => {
           const Icon = icons[p.id];
+          const active = isClickable(p);
 
           return (
             <button
               key={p.id}
               type="button"
-              className={`aida-social-btn ${p.iconClass} aida-social-btn--disabled`}
-              disabled
-              title={t('auth.socialSoon')}
-              aria-disabled
+              className={`aida-social-btn ${p.iconClass} ${active ? '' : 'aida-social-btn--disabled'}`}
+              onClick={active ? () => { window.location.href = `/api/auth/oauth/${p.id}`; } : undefined}
+              disabled={!active}
+              title={getTitle(p)}
+              aria-disabled={!active}
             >
               <Icon />
               <span className="aida-social-label">{p.label}</span>

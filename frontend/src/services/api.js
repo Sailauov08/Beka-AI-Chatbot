@@ -95,6 +95,24 @@ export const authAPI = {
     return handleResponse(response);
   },
 
+  forgotPasswordSendCode: async (email) => {
+    const response = await fetch(`${API_BASE}/auth/forgot-password/send-code`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    return handleResponse(response);
+  },
+
+  forgotPasswordReset: async ({ email, code, password, confirmPassword }) => {
+    const response = await fetch(`${API_BASE}/auth/forgot-password/reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, code, password, confirmPassword }),
+    });
+    return handleResponse(response);
+  },
+
   oauthToken: async (token) => {
     const response = await fetch(`${API_BASE}/auth/oauth/token`, {
       method: 'POST',

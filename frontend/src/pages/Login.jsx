@@ -25,6 +25,10 @@ const Login = () => {
     setLoading(true);
     try {
       const res = await loginSendCode(identifier, password);
+      if (res.data?.direct) {
+        navigate('/');
+        return;
+      }
       setOtpTarget(res.data.target);
       setOtpChannel(res.data.channel);
       setDevCode(res.data.devCode || null);
@@ -108,8 +112,14 @@ const Login = () => {
               className="aida-auth-input aida-auth-input-last"
             />
 
+            <p className="aida-auth-forgot">
+              <Link to="/forgot-password" className="aida-auth-link">
+                {t('auth.forgotPassword')}
+              </Link>
+            </p>
+
             <button type="submit" disabled={loading} className="aida-auth-btn">
-              {loading ? t('auth.sendingCode') : t('auth.login')}
+              {loading ? t('auth.loggingIn') : t('auth.login')}
             </button>
 
             <p className="aida-auth-footer">

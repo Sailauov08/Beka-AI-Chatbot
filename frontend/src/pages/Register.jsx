@@ -31,6 +31,10 @@ const Register = () => {
     setLoading(true);
     try {
       const res = await registerSendCode({ name, identifier, password, confirmPassword });
+      if (res.data?.direct) {
+        navigate('/');
+        return;
+      }
       setOtpTarget(res.data.target);
       setOtpChannel(res.data.channel);
       setDevCode(res.data.devCode || null);
@@ -144,7 +148,7 @@ const Register = () => {
             />
 
             <button type="submit" disabled={loading} className="aida-auth-btn">
-              {loading ? t('auth.sendingCode') : t('auth.register')}
+              {loading ? t('auth.registering') : t('auth.register')}
             </button>
 
             <p className="aida-auth-footer">

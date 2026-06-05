@@ -14,7 +14,7 @@ const verificationCodeSchema = new mongoose.Schema(
     },
     purpose: {
       type: String,
-      enum: ['register', 'login'],
+      enum: ['register', 'login', 'reset-password'],
       required: true,
     },
     codeHash: {

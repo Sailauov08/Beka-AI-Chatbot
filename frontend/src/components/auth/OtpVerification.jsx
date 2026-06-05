@@ -24,7 +24,7 @@ const OtpVerification = ({
       {error && <div className="aida-auth-error">{error}</div>}
 
       <p className="aida-otp-hint">
-        {devCode ? t('auth.otpFakeHint') : channel === 'phone' ? t('auth.otpSentPhone') : t('auth.otpSentEmail')}
+        {devCode ? t('auth.otpFallbackHint') : channel === 'phone' ? t('auth.otpSentPhone') : t('auth.otpSentEmail')}
         <br />
         <span className="aida-otp-target">{target}</span>
       </p>

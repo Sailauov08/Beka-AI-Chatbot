@@ -1840,6 +1840,12 @@
   cursor: not-allowed;
 }
 
+.aida-auth-forgot {
+  margin: 0.5rem 0 0;
+  text-align: right;
+  font-size: 0.8125rem;
+}
+
 .aida-auth-footer {
   margin-top: 1.5rem;
   text-align: center;
@@ -1990,14 +1996,28 @@
 }
 
 .aida-otp-dev {
-  margin: 0 0 1rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.5rem;
-  font-size: 0.75rem;
+  margin: 0 0 1.25rem;
+  padding: 1rem 0.75rem;
+  border-radius: 0.75rem;
   text-align: center;
   color: #fde68a;
-  background: rgba(251, 191, 36, 0.1);
-  border: 1px solid rgba(251, 191, 36, 0.25);
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+}
+
+.aida-otp-dev-label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.75rem;
+  opacity: 0.9;
+}
+
+.aida-otp-dev-code {
+  display: block;
+  font-size: 2rem;
+  letter-spacing: 0.4em;
+  line-height: 1.2;
+  color: #fef3c7;
 }
 
 .aida-otp-input {
