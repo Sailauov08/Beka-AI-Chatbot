@@ -322,7 +322,15 @@ const Chat = () => {
                 </div>
               )}
 
-              <div className={`relative z-20 aida-chat-input-area ${showHero ? 'aida-chat-input-area--hero' : 'pb-4'}`}>
+              <div className="xl:hidden">
+                {showHero ? (
+                  <AidaWidgets variant="mobile" />
+                ) : (
+                  <AidaWidgets variant="mobile-compact" />
+                )}
+              </div>
+
+              <div className={`relative z-20 aida-chat-input-area ${showHero ? 'aida-chat-input-area--hero' : ''}`}>
                 {isActiveChatStreaming && (
                   <p className="mb-2 text-center text-xs aida-text-accent-dim animate-pulse">
                     {streamStatus === 'thinking'

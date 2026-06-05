@@ -192,17 +192,23 @@
 }
 
 .aida-chat-input-area {
-  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  flex-shrink: 0;
+  padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
 }
 
 .aida-chat-input-area--hero {
   padding-top: 38vh;
-  padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+  padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
 }
 
 @media (max-width: 1023px) {
+  .aida-mesh {
+    width: min(92vw, 420px);
+    height: min(32vh, 240px);
+  }
+
   .aida-chat-input-area--hero {
-    padding-top: 28vh;
+    padding-top: 0;
   }
 
   .aida-orb {
@@ -216,11 +222,51 @@
   .aida-input-shell {
     padding-left: 0.75rem;
     padding-right: 0.75rem;
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+    overflow: hidden;
+  }
+
+  .aida-input-glow {
+    opacity: 0.35;
+    filter: blur(4px);
+  }
+
+  .aida-input-bar {
+    gap: 0.3rem;
+    padding: 0.4rem 0.5rem;
+    border-radius: 1rem;
   }
 
   .aida-input-bar input,
   .aida-input-bar textarea {
     font-size: 16px;
+    min-width: 0;
+  }
+
+  .aida-icon-btn {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .aida-send-btn,
+  .aida-stop-btn {
+    padding: 0.45rem 0.6rem;
+    min-width: 2.25rem;
+    justify-content: center;
+  }
+
+  .aida-send-btn .aida-btn-label,
+  .aida-stop-btn .aida-btn-label {
+    display: none;
+  }
+
+  .aida-settings-main,
+  .aida-profile-main,
+  .aida-pricing-main,
+  .aida-schedule-main {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-bottom: max(3.5rem, calc(2rem + env(safe-area-inset-bottom)));
   }
 }
 
@@ -344,6 +390,19 @@
 
 .aida-widget {
   width: 14rem;
+  flex-shrink: 0;
+}
+
+.aida-widget-mobile,
+.aida-widget-mobile-compact {
+  flex-shrink: 0;
+}
+
+.aida-weather-select--compact {
+  width: auto;
+  max-width: 7.5rem;
+  padding: 0.35rem 0.45rem;
+  font-size: 0.65rem;
   flex-shrink: 0;
 }
 
