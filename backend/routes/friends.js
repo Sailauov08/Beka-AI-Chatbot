@@ -11,6 +11,17 @@ const publicUserBrief = (user) => ({
   avatarUrl: user.avatar || null,
 });
 
+const refreshConversationPreview = (conversation) => {
+  const last = conversation.messages[conversation.messages.length - 1];
+  if (last) {
+    conversation.lastMessageAt = last.createdAt;
+    conversation.lastMessagePreview = last.content.slice(0, 120);
+  } else {
+    conversation.lastMessageAt = null;
+    conversation.lastMessagePreview = '';
+  }
+};
+
 const formatConversation = (conv, currentUserId) => {
   const other = conv.participants.find((p) => String(p._id) !== String(currentUserId));
   return {
@@ -188,6 +199,58 @@ router.post('/conversations/:id/messages', protect, async (req, res) => {
   } catch (err) {
     console.error('Friends send message error:', err);
     res.status(500).json({ success: false, message: 'Жіберу қатесі' });
+  }
+});
+
+// DELETE /api/friends/conversations/:id
+router.delete('/conversations/:id', protect, async (req, res) => {
+  try {
+    const conversation = await DirectConversation.findOne({
+      _id: req.params.id,
+      participants: req.user._id,
+    });
+
+    if (!conversation) {
+      return res.status(404).json({ success: false, message: 'Чат табылмады' });
+    }
+
+    await DirectConversation.deleteOne({ _id: conversation._id });
+
+    res.json({ success: true, message: 'Чат өшірілді' });
+  } catch (err) {
+    console.error('Friends delete conversation error:', err);
+    res.status(500).json({ success: false, message: 'Чатты өшіру қатесі' });
+  }
+});
+
+// DELETE /api/friends/conversations/:id/messages/:messageId
+router.delete('/conversations/:id/messages/:messageId', protect, async (req, res) => {
+  try {
+    const conversation = await DirectConversation.findOne({
+      _id: req.params.id,
+      participants: req.user._id,
+    });
+
+    if (!conversation) {
+      return res.status(404).json({ success: false, message: 'Чат табылмады' });
+    }
+
+    const before = conversation.messages.length;
+    conversation.messages = conversation.messages.filter(
+      (m) => String(m._id) !== String(req.params.messageId)
+    );
+
+    if (conversation.messages.length === before) {
+      return res.status(404).json({ success: false, message: 'Хабарлама табылмады' });
+    }
+
+    refreshConversationPreview(conversation);
+    await conversation.save();
+
+    res.json({ success: true, message: 'Хабарлама өшірілді' });
+  } catch (err) {
+    console.error('Friends delete message error:', err);
+    res.status(500).json({ success: false, message: 'Хабарламаны өшіру қатесі' });
   }
 });
 

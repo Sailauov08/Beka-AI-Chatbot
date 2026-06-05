@@ -147,6 +147,22 @@ export const friendsAPI = {
     });
     return handleResponse(response);
   },
+
+  deleteConversation: async (conversationId) => {
+    const response = await fetch(`${API_BASE}/friends/conversations/${conversationId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    });
+    return handleResponse(response);
+  },
+
+  deleteMessage: async (conversationId, messageId) => {
+    const response = await fetch(
+      `${API_BASE}/friends/conversations/${conversationId}/messages/${messageId}`,
+      { method: 'DELETE', headers: getAuthHeaders() }
+    );
+    return handleResponse(response);
+  },
 };
 
 export const chatAPI = {

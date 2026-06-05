@@ -14,6 +14,12 @@ const formatTime = (dateStr, locale) => {
   }
 };
 
+const TrashIcon = () => (
+  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+  </svg>
+);
+
 const Friends = () => {
   const { user } = useAuth();
   const { t, locale } = usePreferences();
@@ -138,6 +144,33 @@ const Friends = () => {
     }
   };
 
+  const handleDeleteMessage = async (messageId) => {
+    if (!activeConvId || !window.confirm(t('friends.confirmDeleteMessage'))) return;
+    try {
+      await friendsAPI.deleteMessage(activeConvId, messageId);
+      setMessages((prev) => prev.filter((m) => m._id !== messageId));
+      await loadConversations();
+    } catch (err) {
+      alert(err.message || t('friends.error'));
+    }
+  };
+
+  const handleDeleteConversation = async (convId) => {
+    if (!window.confirm(t('friends.confirmDeleteChat'))) return;
+    try {
+      await friendsAPI.deleteConversation(convId);
+      if (activeConvId === convId) {
+        setActiveConvId(null);
+        setActiveOther(null);
+        setMessages([]);
+        setMobileShowChat(false);
+      }
+      await loadConversations();
+    } catch (err) {
+      alert(err.message || t('friends.error'));
+    }
+  };
+
   const showSearch = search.trim().length >= 2;
   const listItems = showSearch ? searchResults : conversations;
 
@@ -150,28 +183,40 @@ const Friends = () => {
       : item.lastMessagePreview || t('friends.noMessages');
 
     return (
-      <button
-        key={key}
-        type="button"
-        className={`friends-contact ${isActive ? 'active' : ''}`}
-        onClick={() => (isSearch ? openConversation(person._id, person) : selectConversation(item))}
-      >
-        <div className="friends-contact-avatar-wrap">
-          <ProfileAvatar name={person.name} avatarUrl={person.avatarUrl} size="sm" />
-          <span className={`friends-status-dot ${isSearch ? 'member' : 'online'}`} />
-        </div>
-        <div className="friends-contact-info">
-          <span className="friends-contact-name">{person.name}</span>
-          <span className="friends-contact-sub">{sub}</span>
-        </div>
-      </button>
+      <div key={key} className={`friends-contact-row ${isActive ? 'active' : ''}`}>
+        <button
+          type="button"
+          className="friends-contact"
+          onClick={() => (isSearch ? openConversation(person._id, person) : selectConversation(item))}
+        >
+          <div className="friends-contact-avatar-wrap">
+            <ProfileAvatar name={person.name} avatarUrl={person.avatarUrl} size="sm" />
+            <span className={`friends-status-dot ${isSearch ? 'member' : 'online'}`} />
+          </div>
+          <div className="friends-contact-info">
+            <span className="friends-contact-name">{person.name}</span>
+            <span className="friends-contact-sub">{sub}</span>
+          </div>
+        </button>
+        {!isSearch && (
+          <button
+            type="button"
+            className="friends-contact-delete"
+            onClick={() => handleDeleteConversation(item._id)}
+            title={t('friends.deleteChat')}
+            aria-label={t('friends.deleteChat')}
+          >
+            <TrashIcon />
+          </button>
+        )}
+      </div>
     );
   };
 
   return (
     <AidaShell>
       <div className="friends-page">
-        <aside className={`friends-panel ${mobileShowChat ? 'hidden-mobile' : ''}`}>
+        <aside className={`friends-panel ${mobileShowChat ? 'friends-hide-mobile' : ''}`}>
           <div className="friends-panel-header">
             <h2 className="friends-panel-title">{t('friends.title')}</h2>
           </div>
@@ -211,14 +256,18 @@ const Friends = () => {
           </div>
         </aside>
 
-        <section className={`friends-chat ${!mobileShowChat && !activeConvId ? '' : mobileShowChat ? '' : 'hidden-mobile'}`}>
+        <section
+          className={`friends-chat ${
+            mobileShowChat || activeConvId ? '' : 'friends-hide-mobile'
+          }`}
+        >
           {activeConvId && activeOther ? (
             <>
               <header className="friends-chat-header">
                 <div className="friends-chat-header-user">
                   <button
                     type="button"
-                    className="mr-1 text-slate-400 lg:hidden"
+                    className="friends-back-btn"
                     onClick={() => setMobileShowChat(false)}
                     aria-label={t('friends.back')}
                   >
@@ -231,15 +280,14 @@ const Friends = () => {
                   </div>
                 </div>
                 <div className="friends-chat-actions">
-                  <button type="button" className="friends-chat-action-btn" title={t('friends.callSoon')}>
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                    </svg>
-                  </button>
-                  <button type="button" className="friends-chat-action-btn" title={t('friends.videoSoon')}>
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
+                  <button
+                    type="button"
+                    className="friends-chat-action-btn friends-chat-action-btn--danger"
+                    onClick={() => handleDeleteConversation(activeConvId)}
+                    title={t('friends.deleteChat')}
+                    aria-label={t('friends.deleteChat')}
+                  >
+                    <TrashIcon />
                   </button>
                 </div>
               </header>
@@ -248,22 +296,27 @@ const Friends = () => {
                 {messages.map((msg) => (
                   <div
                     key={msg._id}
-                    className={`friends-msg ${msg.isMine ? 'friends-msg-out' : 'friends-msg-in'}`}
+                    className={`friends-msg-wrap ${msg.isMine ? 'friends-msg-wrap-out' : 'friends-msg-wrap-in'}`}
                   >
-                    {msg.content}
-                    <span className="friends-msg-time">{formatTime(msg.createdAt, locale)}</span>
+                    <div className={`friends-msg ${msg.isMine ? 'friends-msg-out' : 'friends-msg-in'}`}>
+                      {msg.content}
+                      <span className="friends-msg-time">{formatTime(msg.createdAt, locale)}</span>
+                    </div>
+                    <button
+                      type="button"
+                      className="friends-msg-delete"
+                      onClick={() => handleDeleteMessage(msg._id)}
+                      title={t('friends.deleteMessage')}
+                      aria-label={t('friends.deleteMessage')}
+                    >
+                      <TrashIcon />
+                    </button>
                   </div>
                 ))}
                 <div ref={messagesEndRef} />
               </div>
 
               <form className="friends-input-bar" onSubmit={handleSend}>
-                <span className="friends-input-icon" aria-hidden>
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                  </svg>
-                </span>
-                <span className="friends-input-divider" />
                 <input
                   type="text"
                   value={draft}
@@ -272,7 +325,7 @@ const Friends = () => {
                   disabled={sending}
                 />
                 <button type="submit" className="friends-send-btn" disabled={!draft.trim() || sending}>
-                  {t('friends.send')}
+                  <span className="friends-send-label">{t('friends.send')}</span>
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                   </svg>

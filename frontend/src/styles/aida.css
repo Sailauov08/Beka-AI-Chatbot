@@ -191,6 +191,39 @@
   }
 }
 
+.aida-chat-input-area {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+.aida-chat-input-area--hero {
+  padding-top: 38vh;
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+}
+
+@media (max-width: 1023px) {
+  .aida-chat-input-area--hero {
+    padding-top: 28vh;
+  }
+
+  .aida-orb {
+    top: 3.5rem;
+    right: 0.75rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    font-size: 0.55rem;
+  }
+
+  .aida-input-shell {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .aida-input-bar input,
+  .aida-input-bar textarea {
+    font-size: 16px;
+  }
+}
+
 .aida-input-shell {
   position: relative;
   margin: 0 auto;

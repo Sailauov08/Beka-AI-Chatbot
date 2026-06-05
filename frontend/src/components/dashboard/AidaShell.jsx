@@ -9,7 +9,7 @@ const AidaShell = ({ children, chatSidebarProps }) => {
   const isChat = location.pathname === '/';
 
   return (
-    <div className="aida-shell flex h-screen overflow-hidden">
+    <div className="aida-shell flex h-[100dvh] min-h-screen overflow-hidden">
       <AidaSidebar
         minimal={!isChat}
         {...(isChat ? chatSidebarProps : {})}
