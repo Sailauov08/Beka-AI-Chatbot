@@ -40,8 +40,7 @@ export const createAndSendOtp = async ({ target, channel, purpose, payload = nul
   }
 
   const devMode = process.env.NODE_ENV !== 'production';
-  const devFallback = devMode && process.env.OTP_DEV_MODE !== 'false';
-  const exposeDevCode = devFallback || (channel === 'email' && !sent);
+  const exposeDevCode = devMode && process.env.OTP_DEV_MODE !== 'false';
 
   return {
     sent,

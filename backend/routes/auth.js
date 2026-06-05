@@ -57,26 +57,21 @@ const userExists = async (target, channel) => {
 };
 
 const respondEmailOtp = (res, otpResult, target, sentMessage) => {
-  if (!otpResult.sent && !otpResult.devCode) {
+  if (!otpResult.sent) {
     return res.status(503).json({
       success: false,
-      message: otpResult.sendError || 'Email жіберілмеді',
+      message: otpResult.sendError || 'Email жіберілмеді. SMTP баптауын тексеріңіз.',
     });
   }
 
-  const message = otpResult.sent
-    ? sentMessage
-    : 'Email жіберілмеді — код төменде көрсетіледі';
-
   return res.json({
     success: true,
-    message,
+    message: sentMessage,
     data: {
       target,
       channel: 'email',
       expiresInSec: otpResult.expiresInSec,
-      devCode: otpResult.devCode,
-      emailSent: otpResult.sent,
+      emailSent: true,
       direct: false,
     },
   });

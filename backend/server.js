@@ -11,6 +11,8 @@ import chatRoutes from './routes/chat.js';
 import friendsRoutes from './routes/friends.js';
 import paymentRoutes, { handleLavaWebhook } from './routes/payment.js';
 import { getPublicAppUrl } from './utils/appUrl.js';
+import { getOAuthRedirectUri } from './utils/oauthHelpers.js';
+import { isSmtpConfigured } from './utils/mailer.js';
 
 dotenv.config();
 
@@ -131,6 +133,18 @@ if (!geminiKey || geminiKey === 'your_gemini_api_key_here') {
 
 if (!process.env.LAVA_API_KEY || !process.env.LAVA_OFFER_ID) {
   console.warn('⚠ Lava.top бапталмаған — төлем жұмыс істемейді. ТӨЛЕМ-ОРНАТУ.md қараңыз.');
+}
+
+if (process.env.GOOGLE_CLIENT_ID) {
+  console.log('Google OAuth callback:', getOAuthRedirectUri('google'));
+} else {
+  console.warn('⚠ GOOGLE_CLIENT_ID жоқ — Google кіру өшік');
+}
+
+if (isSmtpConfigured()) {
+  console.log('SMTP user:', process.env.SMTP_USER);
+} else {
+  console.warn('⚠ SMTP бапталмаған — email код жіберілмейді');
 }
 
 app.listen(PORT, () => {

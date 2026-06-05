@@ -17,10 +17,12 @@ const generateToken = (userId) =>
   jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '30d' });
 
 const upsertOAuthUser = async ({ provider, oauthId, email, name, avatarUrl }) => {
+  const normalizedEmail = email?.toLowerCase()?.trim() || null;
+
   let user = await User.findOne({ oauthProvider: provider, oauthId });
 
-  if (!user && email) {
-    user = await User.findOne({ email: email.toLowerCase() });
+  if (!user && normalizedEmail) {
+    user = await User.findOne({ email: normalizedEmail });
     if (user) {
       user.oauthProvider = provider;
       user.oauthId = oauthId;
@@ -33,20 +35,34 @@ const upsertOAuthUser = async ({ provider, oauthId, email, name, avatarUrl }) =>
   }
 
   if (!user) {
-    user = await User.create({
-      name: name || 'Beka User',
-      email: email || undefined,
-      oauthProvider: provider,
-      oauthId,
-      emailVerified: !!email,
-      avatar: avatarUrl || null,
-    });
-    return user;
+    try {
+      user = await User.create({
+        name: name || 'Beka User',
+        email: normalizedEmail || undefined,
+        oauthProvider: provider,
+        oauthId,
+        emailVerified: !!normalizedEmail,
+        avatar: avatarUrl || null,
+      });
+      return user;
+    } catch (createErr) {
+      if (createErr.code === 11000 && normalizedEmail) {
+        user = await User.findOne({ email: normalizedEmail });
+        if (user) {
+          user.oauthProvider = provider;
+          user.oauthId = oauthId;
+          user.emailVerified = true;
+          await user.save();
+          return user;
+        }
+      }
+      throw createErr;
+    }
   }
 
   if (name && user.name === 'Beka User') user.name = name;
   if (avatarUrl && !user.avatar) user.avatar = avatarUrl;
-  if (email) user.emailVerified = true;
+  if (normalizedEmail) user.emailVerified = true;
   await user.save();
   return user;
 };
@@ -108,8 +124,22 @@ router.get('/google/callback', async (req, res) => {
 
     await finishOAuth(res, user);
   } catch (err) {
-    console.error('Google OAuth:', err);
-    redirectWithError(res, 'Google арқылы кіру сәтсіз');
+    console.error('Google OAuth:', err.message, err.data || '');
+    let msg = 'Google арқылы кіру сәтсіз';
+
+    if (err.data?.error === 'redirect_uri_mismatch') {
+      msg =
+        'Google redirect URI сәйкес емес. Google Console-ға мына URL қосыңыз: ' +
+        getOAuthRedirectUri('google');
+    } else if (err.data?.error_description) {
+      msg = String(err.data.error_description);
+    } else if (String(err.message || '').includes('E11000')) {
+      msg = 'Бұл email басқа аккаунтпен байланған';
+    } else if (err.message) {
+      msg = err.message;
+    }
+
+    redirectWithError(res, msg);
   }
 });
 
