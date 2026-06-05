@@ -21,6 +21,12 @@ const IconTariffs = () => (
   </svg>
 );
 
+const IconFriends = () => (
+  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.75}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+  </svg>
+);
+
 const IconCalendar = () => (
   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.75}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -42,6 +48,7 @@ const IconUser = () => (
 const navMain = [
   { id: 'dashboard', labelKey: 'nav.dashboard', icon: IconGrid, to: '/' },
   { id: 'chat', labelKey: 'nav.chat', icon: IconChat, to: '/' },
+  { id: 'friends', labelKey: 'nav.friends', icon: IconFriends, to: '/friends' },
   { id: 'tariffs', labelKey: 'nav.tariffs', icon: IconTariffs, to: '/pricing' },
   { id: 'schedule', labelKey: 'nav.schedule', icon: IconCalendar, to: '/schedule' },
 ];
@@ -71,10 +78,14 @@ const AidaSidebar = ({
   const onSchedule = location.pathname === '/schedule';
   const onPricing = location.pathname === '/pricing';
   const onProfile = location.pathname === '/profile';
+  const onFriends = location.pathname === '/friends';
 
   const navClass = (item) => {
     if (item.to === '/profile') {
       return onProfile ? 'aida-nav-item active-settings' : 'aida-nav-item';
+    }
+    if (item.to === '/friends') {
+      return onFriends ? 'aida-nav-item active' : 'aida-nav-item';
     }
     if (item.to === '/settings') {
       return onSettings && item.id === 'settings' ? 'aida-nav-item active-settings' : 'aida-nav-item';
@@ -93,7 +104,7 @@ const AidaSidebar = ({
     const Icon = item.icon;
     const className = navClass(item);
 
-    if (minimal || item.to === '/settings' || item.to === '/schedule' || item.to === '/pricing' || item.to === '/profile') {
+    if (minimal || item.to === '/settings' || item.to === '/schedule' || item.to === '/pricing' || item.to === '/profile' || item.to === '/friends') {
       return (
         <Link key={item.id} to={item.to} onClick={onClose} className={className}>
           <Icon />

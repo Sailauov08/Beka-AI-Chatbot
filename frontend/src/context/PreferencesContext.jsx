@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { translations, getNested, SPEECH_LOCALES, DATE_LOCALES } from '../i18n/translations';
+import { applyAccentTheme } from '../utils/applyAccentTheme';
 
 const STORAGE_KEY = 'beka_settings_prefs';
 
@@ -30,12 +31,15 @@ const loadPrefs = () => {
 const PreferencesContext = createContext(null);
 
 export const PreferencesProvider = ({ children }) => {
-  const [prefs, setPrefs] = useState(loadPrefs);
+  const [prefs, setPrefs] = useState(() => {
+    const loaded = loadPrefs();
+    applyAccentTheme(loaded);
+    return loaded;
+  });
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
-    document.documentElement.style.fontSize = `${prefs.fontSize}px`;
-    document.documentElement.lang = prefs.language;
+    applyAccentTheme(prefs);
   }, [prefs]);
 
   const update = useCallback((patch) => {

@@ -57,7 +57,7 @@ const AidaWidgets = () => {
               type="button"
               onClick={refresh}
               disabled={refreshing}
-              className="aida-weather-refresh text-[10px] text-cyan-400/80 hover:text-cyan-300 disabled:opacity-50"
+              className="aida-weather-refresh text-[10px] aida-text-accent-dim aida-hover-accent disabled:opacity-50"
               title={t('weather.refresh')}
             >
               {refreshing ? '↻' : '⟳'}
@@ -107,7 +107,7 @@ const AidaWidgets = () => {
                       </span>
                     )}
                   </p>
-                  <p className="text-xs font-medium text-cyan-200/90">
+                  <p className="text-xs font-medium aida-text-accent-soft">
                     {t(presentation.descKey)}
                   </p>
                   <p className="truncate text-[10px] text-slate-500">
@@ -167,7 +167,7 @@ const AidaWidgets = () => {
 
       <Link
         to="/profile"
-        className="aida-glass-panel flex items-center gap-3 p-3 transition hover:border-blue-500/30"
+        className="aida-glass-panel aida-border-accent-hover flex items-center gap-3 p-3 transition"
       >
         <ProfileAvatar name={user?.name} avatarUrl={user?.avatarUrl} size="md" />
         <div className="min-w-0 flex-1">
@@ -181,7 +181,7 @@ const AidaWidgets = () => {
         </svg>
       </Link>
 
-      <Link to="/pricing" className="text-center text-[10px] text-slate-500 hover:text-blue-400">
+      <Link to="/pricing" className="text-center text-[10px] text-slate-500 aida-hover-accent">
         {t('nav.tariffs')}
       </Link>
     </aside>

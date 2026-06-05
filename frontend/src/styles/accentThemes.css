@@ -1,0 +1,163 @@
+/* Акцент түсі — Параметрлер → Сыртқы түрі → Акцент түсі (<html data-accent="...">) */
+
+:root,
+[data-accent='blue'] {
+  --aida-accent: #3b82f6;
+  --aida-accent-dark: #2563eb;
+  --aida-accent-light: #93c5fd;
+  --aida-accent-bright: #60a5fa;
+  --aida-accent-rgb: 59, 130, 246;
+  --aida-accent-dark-rgb: 37, 99, 235;
+  --aida-accent-bright-rgb: 96, 165, 250;
+  --aida-accent-secondary: #22d3ee;
+  --aida-accent-secondary-rgb: 34, 211, 238;
+  --aida-accent-tertiary: #a855f7;
+  --aida-accent-tertiary-rgb: 168, 85, 247;
+  --aida-shell-top: #1a2744;
+  --aida-shell-auth: #1e2a4a;
+  --aida-auth-btn-top: #1e3a5f;
+  --aida-auth-btn-bot: #0f2744;
+  --aida-brand: #7dd3fc;
+  --aida-link: #67e8f9;
+  --aida-link-hover: #a5f3fc;
+}
+
+[data-accent='teal'] {
+  --aida-accent: #14b8a6;
+  --aida-accent-dark: #0d9488;
+  --aida-accent-light: #5eead4;
+  --aida-accent-bright: #2dd4bf;
+  --aida-accent-rgb: 20, 184, 166;
+  --aida-accent-dark-rgb: 13, 148, 136;
+  --aida-accent-bright-rgb: 45, 212, 191;
+  --aida-accent-secondary: #2dd4bf;
+  --aida-accent-secondary-rgb: 45, 212, 191;
+  --aida-accent-tertiary: #5eead4;
+  --aida-accent-tertiary-rgb: 94, 234, 212;
+  --aida-shell-top: #0f2e2a;
+  --aida-shell-auth: #0c2826;
+  --aida-auth-btn-top: #134e4a;
+  --aida-auth-btn-bot: #0a2f2c;
+  --aida-brand: #5eead4;
+  --aida-link: #2dd4bf;
+  --aida-link-hover: #99f6e4;
+}
+
+[data-accent='purple'] {
+  --aida-accent: #a855f7;
+  --aida-accent-dark: #7c3aed;
+  --aida-accent-light: #d8b4fe;
+  --aida-accent-bright: #c084fc;
+  --aida-accent-rgb: 168, 85, 247;
+  --aida-accent-dark-rgb: 124, 58, 237;
+  --aida-accent-bright-rgb: 192, 132, 252;
+  --aida-accent-secondary: #c084fc;
+  --aida-accent-secondary-rgb: 192, 132, 252;
+  --aida-accent-tertiary: #d8b4fe;
+  --aida-accent-tertiary-rgb: 216, 180, 254;
+  --aida-shell-top: #2a1a44;
+  --aida-shell-auth: #241838;
+  --aida-auth-btn-top: #4c1d95;
+  --aida-auth-btn-bot: #2e1065;
+  --aida-brand: #d8b4fe;
+  --aida-link: #c084fc;
+  --aida-link-hover: #e9d5ff;
+}
+
+[data-accent='magenta'] {
+  --aida-accent: #ec4899;
+  --aida-accent-dark: #db2777;
+  --aida-accent-light: #f9a8d4;
+  --aida-accent-bright: #f472b6;
+  --aida-accent-rgb: 236, 72, 153;
+  --aida-accent-dark-rgb: 219, 39, 119;
+  --aida-accent-bright-rgb: 244, 114, 182;
+  --aida-accent-secondary: #f472b6;
+  --aida-accent-secondary-rgb: 244, 114, 182;
+  --aida-accent-tertiary: #f9a8d4;
+  --aida-accent-tertiary-rgb: 249, 168, 212;
+  --aida-shell-top: #3d1a2e;
+  --aida-shell-auth: #351828;
+  --aida-auth-btn-top: #831843;
+  --aida-auth-btn-bot: #500724;
+  --aida-brand: #f9a8d4;
+  --aida-link: #f472b6;
+  --aida-link-hover: #fbcfe8;
+}
+
+[data-accent='white'] {
+  --aida-accent: #e2e8f0;
+  --aida-accent-dark: #94a3b8;
+  --aida-accent-light: #f8fafc;
+  --aida-accent-bright: #cbd5e1;
+  --aida-accent-rgb: 226, 232, 240;
+  --aida-accent-dark-rgb: 148, 163, 184;
+  --aida-accent-bright-rgb: 203, 213, 225;
+  --aida-accent-secondary: #f1f5f9;
+  --aida-accent-secondary-rgb: 241, 245, 249;
+  --aida-accent-tertiary: #cbd5e1;
+  --aida-accent-tertiary-rgb: 203, 213, 225;
+  --aida-shell-top: #1e293b;
+  --aida-shell-auth: #1a2332;
+  --aida-auth-btn-top: #334155;
+  --aida-auth-btn-bot: #1e293b;
+  --aida-brand: #f8fafc;
+  --aida-link: #e2e8f0;
+  --aida-link-hover: #f8fafc;
+}
+
+/* JSX-тағы accent класстары */
+.aida-text-accent {
+  color: var(--aida-accent-secondary);
+}
+
+.aida-text-accent-soft {
+  color: var(--aida-accent-light);
+}
+
+.aida-text-accent-muted {
+  color: var(--aida-brand);
+}
+
+.aida-text-accent-dim {
+  color: rgba(var(--aida-accent-secondary-rgb), 0.8);
+}
+
+.aida-border-accent {
+  border-color: rgba(var(--aida-accent-secondary-rgb), 0.35);
+}
+
+.aida-border-accent-hover:hover {
+  border-color: rgba(var(--aida-accent-secondary-rgb), 0.45);
+}
+
+.aida-bg-accent-banner {
+  border-color: rgba(var(--aida-accent-rgb), 0.3);
+  background: rgba(var(--aida-accent-rgb), 0.1);
+  color: var(--aida-accent-light);
+}
+
+.aida-accent-gradient-bar {
+  background: linear-gradient(
+    90deg,
+    var(--aida-accent) 0%,
+    var(--aida-accent-secondary) 50%,
+    var(--aida-accent-tertiary) 100%
+  );
+}
+
+.aida-hover-accent:hover {
+  color: var(--aida-accent-bright);
+}
+
+.aida-accent-ring {
+  accent-color: var(--aida-accent-secondary);
+}
+
+.aida-avatar-user {
+  background-color: var(--aida-accent-dark);
+}
+
+.aida-avatar-ai {
+  background-color: rgba(var(--aida-accent-tertiary-rgb), 0.8);
+}

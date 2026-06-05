@@ -39,7 +39,7 @@ const Settings = () => {
         </div>
 
         {langSaved && (
-          <p className="mb-4 rounded-md border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-300">
+          <p className="aida-bg-accent-banner mb-4 rounded-md border px-4 py-2 text-sm">
             {t('settings.langChanged')}
           </p>
         )}
@@ -118,9 +118,9 @@ const Settings = () => {
           <div className="aida-settings-card">
             <h3>{t('settings.notifications')}</h3>
             <Toggle label={t('settings.notifyTasks')} on={prefs.notifyTasks} onChange={(v) => update({ notifyTasks: v })} icon={<span className="h-4 w-4 text-emerald-400">✓</span>} />
-            <Toggle label={t('settings.notifySchedule')} on={prefs.notifySchedule} onChange={(v) => update({ notifySchedule: v })} icon={<span className="h-4 w-4 text-blue-400">🔔</span>} />
-            <Toggle label={t('settings.notifyNews')} on={prefs.notifyNews} onChange={(v) => update({ notifyNews: v })} icon={<span className="h-4 w-4 text-violet-400">📰</span>} />
-            <Toggle label={t('settings.notifyGeneral')} on={prefs.notifyGeneral} onChange={(v) => update({ notifyGeneral: v })} icon={<span className="h-4 w-4 text-cyan-400">💬</span>} />
+            <Toggle label={t('settings.notifySchedule')} on={prefs.notifySchedule} onChange={(v) => update({ notifySchedule: v })} icon={<span className="h-4 w-4 aida-text-accent">🔔</span>} />
+            <Toggle label={t('settings.notifyNews')} on={prefs.notifyNews} onChange={(v) => update({ notifyNews: v })} icon={<span className="h-4 w-4 aida-text-accent-soft">📰</span>} />
+            <Toggle label={t('settings.notifyGeneral')} on={prefs.notifyGeneral} onChange={(v) => update({ notifyGeneral: v })} icon={<span className="h-4 w-4 aida-text-accent-muted">💬</span>} />
           </div>
 
           <div className="aida-settings-card">
@@ -192,7 +192,7 @@ const Settings = () => {
           <div className="aida-settings-card">
             <h3>{t('settings.about')}</h3>
             <p className="text-sm text-slate-300">
-              {t('settings.version')}: <span className="font-mono text-cyan-300">1.0.0</span>
+              {t('settings.version')}: <span className="font-mono aida-text-accent-soft">1.0.0</span>
             </p>
             <p className="aida-about-text">{t('settings.aboutText')}</p>
             <button type="button" className="aida-settings-btn" onClick={() => alert(t('settings.upToDate'))}>

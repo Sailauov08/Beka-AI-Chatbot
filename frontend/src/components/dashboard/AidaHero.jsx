@@ -7,9 +7,9 @@ const AidaHero = () => (
         <svg viewBox="0 0 400 200" preserveAspectRatio="none">
           <defs>
             <linearGradient id="aidaStroke" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#22d3ee" stopOpacity="0.2" />
-              <stop offset="50%" stopColor="#a855f7" stopOpacity="0.9" />
-              <stop offset="100%" stopColor="#22d3ee" stopOpacity="0.2" />
+              <stop offset="0%" stopColor="var(--aida-accent-secondary)" stopOpacity="0.2" />
+              <stop offset="50%" stopColor="var(--aida-accent-tertiary)" stopOpacity="0.9" />
+              <stop offset="100%" stopColor="var(--aida-accent-secondary)" stopOpacity="0.2" />
             </linearGradient>
           </defs>
           <path

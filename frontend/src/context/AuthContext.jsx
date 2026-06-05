@@ -6,7 +6,8 @@ const AuthContext = createContext(null);
 const buildUserData = (data) => ({
   _id: data._id,
   name: data.name,
-  email: data.email,
+  email: data.email ?? null,
+  phone: data.phone ?? null,
   avatarUrl: data.avatarUrl ?? null,
 });
 
@@ -71,14 +72,25 @@ export const AuthProvider = ({ children }) => {
     setSubscription(data.subscription || null);
   };
 
-  const login = async (email, password) => {
-    const response = await authAPI.login(email, password);
+  const loginSendCode = async (identifier, password) =>
+    authAPI.loginSendCode(identifier, password);
+
+  const loginVerify = async (target, code) => {
+    const response = await authAPI.loginVerify(target, code);
     applyAuth(response.data);
     return response;
   };
 
-  const register = async (name, email, password) => {
-    const response = await authAPI.register(name, email, password);
+  const registerSendCode = async (payload) => authAPI.registerSendCode(payload);
+
+  const registerVerify = async (target, code) => {
+    const response = await authAPI.registerVerify(target, code);
+    applyAuth(response.data);
+    return response;
+  };
+
+  const applyOAuthToken = async (token) => {
+    const response = await authAPI.oauthToken(token);
     applyAuth(response.data);
     return response;
   };
@@ -118,8 +130,11 @@ export const AuthProvider = ({ children }) => {
         subscription,
         loading,
         isAuthenticated,
-        login,
-        register,
+        loginSendCode,
+        loginVerify,
+        registerSendCode,
+        registerVerify,
+        applyOAuthToken,
         logout,
         refreshSubscription,
         updateUser,

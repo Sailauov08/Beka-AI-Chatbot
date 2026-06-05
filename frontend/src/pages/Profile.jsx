@@ -106,7 +106,7 @@ const Profile = () => {
             <h1 className="aida-pricing-title">{t('profile.title')}</h1>
             <div className="aida-efficiency-badge">
               <span className="text-xs text-slate-400">{t('profile.efficiency')}</span>
-              <span className="text-lg font-bold text-cyan-300">94%</span>
+              <span className="text-lg font-bold aida-text-accent-soft">94%</span>
               <svg className="h-10 w-10 -rotate-90" viewBox="0 0 36 36">
                 <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(34,211,238,0.15)" strokeWidth="3" />
                 <circle cx="18" cy="18" r="15" fill="none" stroke="#22d3ee" strokeWidth="3" strokeDasharray="94 100" strokeLinecap="round" />
@@ -195,7 +195,7 @@ const Profile = () => {
                 </Link>
               ))}
             </div>
-            <Link to="/pricing" className="mt-3 block text-center text-xs text-cyan-400 hover:underline">
+            <Link to="/pricing" className="mt-3 block text-center text-xs aida-text-accent aida-hover-accent hover:underline">
               {t('profile.viewTariffs')}
             </Link>
           </div>
@@ -290,7 +290,7 @@ const Profile = () => {
                     type="checkbox"
                     checked={profile[field]}
                     onChange={(e) => updateProfile({ [field]: e.target.checked })}
-                    className="accent-cyan-500"
+                    className="aida-accent-ring"
                   />
                   <span>{t(`profile.${key}`)}</span>
                 </label>

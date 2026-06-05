@@ -10,17 +10,40 @@ const userSchema = new mongoose.Schema(
     },
     email: {
       type: String,
-      required: [true, 'Email is required'],
-      unique: true,
       lowercase: true,
       trim: true,
+      sparse: true,
+      unique: true,
       match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email'],
+    },
+    phone: {
+      type: String,
+      trim: true,
+      sparse: true,
+      unique: true,
     },
     password: {
       type: String,
-      required: [true, 'Password is required'],
       minlength: [6, 'Password must be at least 6 characters'],
       select: false,
+    },
+    emailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    phoneVerified: {
+      type: Boolean,
+      default: false,
+    },
+    oauthProvider: {
+      type: String,
+      enum: ['google', 'facebook', 'vk', 'apple', null],
+      default: null,
+    },
+    oauthId: {
+      type: String,
+      default: null,
+      sparse: true,
     },
     subscriptionPlan: {
       type: String,
@@ -53,6 +76,18 @@ const userSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+userSchema.index({ oauthProvider: 1, oauthId: 1 }, { sparse: true });
+
+userSchema.pre('validate', function validateContact(next) {
+  if (this.oauthProvider && this.oauthId) {
+    return next();
+  }
+  if (!this.email && !this.phone) {
+    this.invalidate('email', 'Email немесе телефон қажет');
+  }
+  next();
+});
 
 const User = mongoose.model('User', userSchema);
 

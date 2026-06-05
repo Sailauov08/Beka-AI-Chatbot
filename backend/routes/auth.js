@@ -7,13 +7,19 @@ import User from '../models/User.js';
 import { protect } from '../middleware/auth.js';
 import { avatarUpload, avatarsDir } from '../middleware/avatarUpload.js';
 import { formatSubscriptionForClient } from '../utils/subscription.js';
+import { parseIdentifier, findUserByIdentifier } from '../utils/normalizeIdentifier.js';
+import { createAndSendOtp, verifyOtp } from '../utils/otp.js';
+import oauthRoutes from './oauth.js';
 
 const router = express.Router();
+
+router.use('/oauth', oauthRoutes);
 
 const userPayload = (user, token) => ({
   _id: user._id,
   name: user.name,
-  email: user.email,
+  email: user.email || null,
+  phone: user.phone || null,
   avatarUrl: user.avatar || null,
   token,
   subscription: formatSubscriptionForClient(user),
@@ -22,7 +28,8 @@ const userPayload = (user, token) => ({
 const publicUserFields = (user) => ({
   _id: user._id,
   name: user.name,
-  email: user.email,
+  email: user.email || null,
+  phone: user.phone || null,
   avatarUrl: user.avatar || null,
   subscription: formatSubscriptionForClient(user),
 });
@@ -39,104 +46,281 @@ const removeAvatarFile = (avatarPath) => {
   }
 };
 
-const generateToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
-    expiresIn: '30d',
-  });
+const generateToken = (userId) =>
+  jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '30d' });
+
+const userExists = async (target, channel) => {
+  if (channel === 'email') {
+    return User.findOne({ email: target });
+  }
+  return User.findOne({ phone: target });
 };
 
-// POST /api/auth/register
-router.post('/register', async (req, res) => {
+// POST /api/auth/register/send-code
+router.post('/register/send-code', async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, identifier, password, confirmPassword } = req.body;
 
-    if (!name || !email || !password) {
+    if (!name?.trim() || !identifier?.trim() || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide name, email and password',
+        message: 'Аты, email/телефон және құпия сөз қажет',
       });
     }
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
+    if (password !== confirmPassword) {
       return res.status(400).json({
         success: false,
-        message: 'User already exists with this email',
+        message: 'Құпия сөздер сәйкес келмейді',
       });
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'Құпия сөз кемінде 6 таңба',
+      });
+    }
 
-    const user = await User.create({
-      name,
-      email,
-      password: hashedPassword,
+    const parsed = parseIdentifier(identifier);
+    if (parsed.error) {
+      return res.status(400).json({ success: false, message: parsed.error });
+    }
+
+    const existing = await userExists(parsed.target, parsed.channel);
+    if (existing) {
+      return res.status(400).json({
+        success: false,
+        message:
+          parsed.channel === 'email'
+            ? 'Бұл email тіркелген'
+            : 'Бұл телефон тіркелген',
+      });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const otpResult = await createAndSendOtp({
+      target: parsed.target,
+      channel: parsed.channel,
+      purpose: 'register',
+      payload: {
+        name: name.trim(),
+        passwordHash,
+        channel: parsed.channel,
+      },
     });
 
+    res.json({
+      success: true,
+      message:
+        parsed.channel === 'email'
+          ? 'Email-ге растау коды жіберілді'
+          : 'Телефонға SMS коды жіберілді',
+      data: {
+        target: parsed.target,
+        channel: parsed.channel,
+        expiresInSec: otpResult.expiresInSec,
+        devCode: otpResult.devCode,
+      },
+    });
+  } catch (error) {
+    console.error('Register send-code error:', error);
+    res.status(500).json({ success: false, message: error.message || 'Сервер қатесі' });
+  }
+});
+
+// POST /api/auth/register/verify
+router.post('/register/verify', async (req, res) => {
+  try {
+    const { target, code } = req.body;
+    if (!target || !code) {
+      return res.status(400).json({ success: false, message: 'Код қажет' });
+    }
+
+    const normalized = parseIdentifier(target);
+    const lookupTarget = normalized.error
+      ? String(target).trim().toLowerCase()
+      : normalized.target;
+
+    const verified = await verifyOtp({
+      target: lookupTarget,
+      purpose: 'register',
+      code: String(code).trim(),
+    });
+
+    if (!verified.ok) {
+      return res.status(400).json({ success: false, message: verified.message });
+    }
+
+    const { name, passwordHash, channel } = verified.payload || {};
+    const existing = await userExists(lookupTarget, channel);
+    if (existing) {
+      return res.status(400).json({ success: false, message: 'Пайдаланушы бар' });
+    }
+
+    const userData = {
+      name,
+      password: passwordHash,
+      emailVerified: channel === 'email',
+      phoneVerified: channel === 'phone',
+    };
+
+    if (channel === 'email') {
+      userData.email = lookupTarget;
+    } else {
+      userData.phone = lookupTarget;
+    }
+
+    const user = await User.create(userData);
     const token = generateToken(user._id);
 
     res.status(201).json({
       success: true,
-      message: 'User registered successfully',
+      message: 'Тіркелу сәтті',
       data: userPayload(user, token),
     });
   } catch (error) {
-    console.error('Register error:', error);
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Server error during registration',
-    });
+    console.error('Register verify error:', error);
+    res.status(500).json({ success: false, message: error.message || 'Сервер қатесі' });
   }
 });
 
-// POST /api/auth/login
-router.post('/login', async (req, res) => {
+// POST /api/auth/login/send-code
+router.post('/login/send-code', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { identifier, password } = req.body;
 
-    if (!email || !password) {
+    if (!identifier?.trim() || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide email and password',
+        message: 'Email/телефон және құпия сөз қажет',
       });
     }
 
-    const user = await User.findOne({ email }).select('+password');
+    const { user, error, target, channel } = await findUserByIdentifier(User, identifier);
+    if (error) {
+      return res.status(400).json({ success: false, message: error });
+    }
 
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid email or password',
+        message: 'Дұрыс емес email/телефон немесе құпия сөз',
       });
     }
 
-    const isPasswordMatch = await bcrypt.compare(password, user.password);
+    if (user.oauthProvider && !user.password) {
+      return res.status(400).json({
+        success: false,
+        message: `${user.oauthProvider} арқылы кіріңіз`,
+        code: 'USE_OAUTH',
+        provider: user.oauthProvider,
+      });
+    }
 
+    const isPasswordMatch = await bcrypt.compare(password, user.password || '');
     if (!isPasswordMatch) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid email or password',
+        message: 'Дұрыс емес email/телефон немесе құпия сөз',
       });
     }
 
-    const token = generateToken(user._id);
+    const otpResult = await createAndSendOtp({
+      target,
+      channel,
+      purpose: 'login',
+      payload: { userId: user._id },
+    });
 
-    res.status(200).json({
+    res.json({
       success: true,
-      message: 'Login successful',
-      data: userPayload(user, token),
+      message:
+        channel === 'email'
+          ? 'Email-ге кіру коды жіберілді'
+          : 'Телефонға SMS коды жіберілді',
+      data: {
+        target,
+        channel,
+        expiresInSec: otpResult.expiresInSec,
+        devCode: otpResult.devCode,
+      },
     });
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Server error during login',
-    });
+    console.error('Login send-code error:', error);
+    res.status(500).json({ success: false, message: error.message || 'Сервер қатесі' });
   }
 });
 
-// GET /api/auth/me — профиль + жазылым
+// POST /api/auth/login/verify
+router.post('/login/verify', async (req, res) => {
+  try {
+    const { target, code } = req.body;
+    if (!target || !code) {
+      return res.status(400).json({ success: false, message: 'Код қажет' });
+    }
+
+    const parsed = parseIdentifier(target);
+    const lookupTarget = parsed.error
+      ? String(target).trim().toLowerCase()
+      : parsed.target;
+
+    const verified = await verifyOtp({
+      target: lookupTarget,
+      purpose: 'login',
+      code: String(code).trim(),
+    });
+
+    if (!verified.ok) {
+      return res.status(400).json({ success: false, message: verified.message });
+    }
+
+    const user = await User.findById(verified.payload?.userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Пайдаланушы табылмады' });
+    }
+
+    if (verified.channel === 'email') user.emailVerified = true;
+    if (verified.channel === 'phone') user.phoneVerified = true;
+    await user.save();
+
+    const token = generateToken(user._id);
+
+    res.json({
+      success: true,
+      message: 'Кіру сәтті',
+      data: userPayload(user, token),
+    });
+  } catch (error) {
+    console.error('Login verify error:', error);
+    res.status(500).json({ success: false, message: error.message || 'Сервер қатесі' });
+  }
+});
+
+// POST /api/auth/oauth/token — frontend callback token exchange
+router.post('/oauth/token', async (req, res) => {
+  try {
+    const { token } = req.body;
+    if (!token) {
+      return res.status(400).json({ success: false, message: 'Token жоқ' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Пайдаланушы табылмады' });
+    }
+
+    res.json({
+      success: true,
+      data: userPayload(user, token),
+    });
+  } catch {
+    res.status(401).json({ success: false, message: 'Жарамсыз token' });
+  }
+});
+
+// GET /api/auth/me
 router.get('/me', protect, async (req, res) => {
   try {
     res.json({
@@ -148,7 +332,7 @@ router.get('/me', protect, async (req, res) => {
   }
 });
 
-// POST /api/auth/avatar — профиль суреті
+// POST /api/auth/avatar
 router.post('/avatar', protect, avatarUpload.single('avatar'), async (req, res) => {
   try {
     if (!req.file) {

@@ -146,7 +146,7 @@ const Schedule = () => {
 
             {selectedEvents.length > 0 && (
               <div className="aida-cal-selected-day">
-                <p className="text-xs font-semibold text-cyan-300">
+                <p className="text-xs font-semibold aida-text-accent-soft">
                   {parseDateKey(selectedDate).toLocaleDateString(locale, {
                     day: 'numeric',
                     month: 'long',
@@ -221,7 +221,7 @@ const Schedule = () => {
             {/* Create */}
             <div className="aida-settings-card">
               <h3>{t('schedule.addEvent')}</h3>
-              <p className="mb-3 text-[11px] text-cyan-400/90">
+              <p className="mb-3 text-[11px] aida-text-accent-dim">
                 {t('schedule.day')}:{' '}
                 {parseDateKey(selectedDate).toLocaleDateString(locale, {
                   weekday: 'long',

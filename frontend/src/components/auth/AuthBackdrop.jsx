@@ -14,8 +14,8 @@ const AuthWave = ({ mirror }) => {
     >
       <defs>
         <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#67e8f9" />
-          <stop offset="100%" stopColor="#a855f7" />
+          <stop offset="0%" stopColor="var(--aida-link)" />
+          <stop offset="100%" stopColor="var(--aida-accent-tertiary)" />
         </linearGradient>
       </defs>
       <path

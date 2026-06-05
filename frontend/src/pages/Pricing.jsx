@@ -71,7 +71,7 @@ const Pricing = () => {
             <p className="aida-pricing-payment-heading">{t('pricing.paymentHeading')}</p>
             <div className="aida-efficiency-badge">
               <span className="text-xs text-slate-400">{t('pricing.efficiency')}</span>
-              <span className="text-lg font-bold text-cyan-300">94%</span>
+              <span className="text-lg font-bold aida-text-accent-soft">94%</span>
               <svg className="h-10 w-10 -rotate-90" viewBox="0 0 36 36">
                 <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(34,211,238,0.15)" strokeWidth="3" />
                 <circle
@@ -123,7 +123,7 @@ const Pricing = () => {
                   <ul className="aida-pricing-features">
                     {features.map((feat) => (
                       <li key={feat}>
-                        <span className="text-cyan-400">✓</span> {feat}
+                        <span className="aida-text-accent">✓</span> {feat}
                       </li>
                     ))}
                   </ul>
@@ -167,7 +167,7 @@ const Pricing = () => {
               </div>
               <p className="mt-4 mb-2 text-xs text-slate-400">{t('pricing.completion')}</p>
               <div className="h-2 overflow-hidden rounded-full bg-slate-800">
-                <div className="h-full w-[72%] rounded-full bg-gradient-to-r from-cyan-500 via-violet-500 to-amber-400" />
+                <div className="aida-accent-gradient-bar h-full w-[72%] rounded-full" />
               </div>
             </div>
 

@@ -18,7 +18,7 @@ const CodeBlock = ({ language, children }) => {
   return (
     <div className="relative my-3 overflow-hidden rounded-xl border border-zinc-700/80 shadow-lg">
       <div className="flex items-center justify-between border-b border-zinc-700/80 bg-zinc-900/90 px-4 py-2 font-mono text-xs text-zinc-400">
-        <span className="text-cyan-400/80">{language || 'code'}</span>
+        <span className="aida-text-accent-dim">{language || 'code'}</span>
         <button
           type="button"
           onClick={handleCopy}

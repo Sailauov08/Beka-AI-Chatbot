@@ -1,0 +1,400 @@
+/* Достар — glassmorphism messaging UI */
+
+.friends-page {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  gap: 0;
+  padding: 0.75rem;
+  padding-top: 3.25rem;
+}
+
+@media (min-width: 1024px) {
+  .friends-page {
+    padding: 1rem;
+    padding-top: 1rem;
+  }
+}
+
+.friends-panel {
+  display: flex;
+  width: 100%;
+  max-width: 22rem;
+  flex-direction: column;
+  border-radius: 1rem;
+  background: rgba(12, 18, 32, 0.65);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(var(--aida-accent-secondary-rgb), 0.2);
+  box-shadow:
+    0 0 32px rgba(var(--aida-accent-secondary-rgb), 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+}
+
+.friends-panel-header {
+  padding: 1.25rem 1.25rem 0.75rem;
+}
+
+.friends-panel-title {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.friends-search-wrap {
+  position: relative;
+  padding: 0 1rem 0.75rem;
+}
+
+.friends-search-icon {
+  position: absolute;
+  left: 1.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1rem;
+  height: 1rem;
+  color: rgba(var(--aida-accent-secondary-rgb), 0.7);
+  pointer-events: none;
+}
+
+.friends-search {
+  width: 100%;
+  padding: 0.65rem 0.85rem 0.65rem 2.35rem;
+  border-radius: 0.65rem;
+  font-size: 0.8125rem;
+  color: #f1f5f9;
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(var(--aida-accent-secondary-rgb), 0.45);
+  outline: none;
+  box-shadow: 0 0 16px rgba(var(--aida-accent-secondary-rgb), 0.12);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.friends-search::placeholder {
+  color: rgba(148, 163, 184, 0.55);
+}
+
+.friends-search:focus {
+  border-color: rgba(var(--aida-accent-secondary-rgb), 0.75);
+  box-shadow: 0 0 24px rgba(var(--aida-accent-secondary-rgb), 0.22);
+}
+
+.friends-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 0.5rem 0.75rem;
+}
+
+.friends-list-section {
+  padding: 0.35rem 0.75rem 0.25rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(148, 163, 184, 0.65);
+}
+
+.friends-contact {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.65rem;
+  border: 1px solid transparent;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+
+.friends-contact:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.friends-contact.active {
+  background: rgba(var(--aida-accent-rgb), 0.12);
+  border-color: rgba(var(--aida-accent-secondary-rgb), 0.25);
+  box-shadow: 0 0 20px rgba(var(--aida-accent-secondary-rgb), 0.1);
+}
+
+.friends-contact-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.friends-status-dot {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid rgba(12, 18, 32, 0.9);
+}
+
+.friends-status-dot.online {
+  background: #4ade80;
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.6);
+}
+
+.friends-status-dot.offline {
+  background: #64748b;
+}
+
+.friends-status-dot.member {
+  background: var(--aida-accent-secondary);
+  box-shadow: 0 0 8px rgba(var(--aida-accent-secondary-rgb), 0.5);
+}
+
+.friends-contact-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.friends-contact-name {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #f8fafc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.friends-contact-sub {
+  display: block;
+  margin-top: 0.1rem;
+  font-size: 0.6875rem;
+  color: rgba(148, 163, 184, 0.85);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.friends-chat {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  margin-left: 0.75rem;
+  border-radius: 1rem;
+  background: rgba(12, 18, 32, 0.55);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(var(--aida-accent-secondary-rgb), 0.15);
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+.friends-chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.friends-chat-header-user {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.friends-chat-header-name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.friends-chat-header-status {
+  font-size: 0.6875rem;
+  color: rgba(var(--aida-accent-secondary-rgb), 0.9);
+}
+
+.friends-chat-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.friends-chat-action-btn {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--aida-accent-secondary);
+  background: rgba(var(--aida-accent-secondary-rgb), 0.08);
+  border: 1px solid rgba(var(--aida-accent-secondary-rgb), 0.25);
+  box-shadow: 0 0 12px rgba(var(--aida-accent-secondary-rgb), 0.15);
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+.friends-chat-action-btn:hover {
+  background: rgba(var(--aida-accent-secondary-rgb), 0.18);
+  box-shadow: 0 0 18px rgba(var(--aida-accent-secondary-rgb), 0.28);
+}
+
+.friends-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.friends-msg {
+  max-width: 78%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.85rem;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: #f1f5f9;
+  backdrop-filter: blur(12px);
+}
+
+.friends-msg-in {
+  align-self: flex-start;
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(var(--aida-accent-secondary-rgb), 0.55);
+  box-shadow:
+    0 0 20px rgba(var(--aida-accent-secondary-rgb), 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.friends-msg-out {
+  align-self: flex-end;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(251, 191, 36, 0.55);
+  box-shadow:
+    0 0 20px rgba(251, 191, 36, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.friends-msg-time {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.625rem;
+  color: rgba(148, 163, 184, 0.65);
+  text-align: right;
+}
+
+.friends-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+  color: rgba(148, 163, 184, 0.75);
+}
+
+.friends-empty-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin-bottom: 0.5rem;
+}
+
+.friends-input-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.75rem 1rem 1rem;
+  padding: 0.45rem 0.45rem 0.45rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(var(--aida-accent-secondary-rgb), 0.4);
+  box-shadow: 0 0 24px rgba(var(--aida-accent-secondary-rgb), 0.1);
+}
+
+.friends-input-bar input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.875rem;
+  color: #f1f5f9;
+}
+
+.friends-input-bar input::placeholder {
+  color: rgba(148, 163, 184, 0.5);
+}
+
+.friends-input-icon {
+  flex-shrink: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(148, 163, 184, 0.7);
+  border: none;
+  background: none;
+  cursor: default;
+}
+
+.friends-input-divider {
+  width: 1px;
+  height: 1.25rem;
+  background: rgba(148, 163, 184, 0.2);
+}
+
+.friends-send-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, var(--aida-accent-secondary) 0%, var(--aida-accent) 100%);
+  border: 1px solid rgba(var(--aida-accent-secondary-rgb), 0.4);
+  box-shadow: 0 0 20px rgba(var(--aida-accent-secondary-rgb), 0.35);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.friends-send-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 0 28px rgba(var(--aida-accent-secondary-rgb), 0.5);
+}
+
+.friends-send-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 767px) {
+  .friends-page {
+    flex-direction: column;
+  }
+
+  .friends-panel {
+    max-width: none;
+    max-height: 42vh;
+  }
+
+  .friends-chat {
+    margin-left: 0;
+    margin-top: 0.75rem;
+    min-height: 50vh;
+  }
+
+  .friends-chat.hidden-mobile {
+    display: none;
+  }
+
+  .friends-panel.hidden-mobile {
+    display: none;
+  }
+}

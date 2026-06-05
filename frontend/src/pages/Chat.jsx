@@ -301,9 +301,9 @@ const Chat = () => {
                 <div className="relative z-20 mx-auto mb-4 max-w-sm px-4 text-center">
                   <Link
                     to="/schedule"
-                    className="aida-glass-panel block p-6 transition hover:border-cyan-500/40"
+                    className="aida-glass-panel aida-border-accent-hover block p-6 transition"
                   >
-                    <p className="text-sm font-medium text-cyan-200">{t('chat.openSchedule')}</p>
+                    <p className="text-sm font-medium aida-text-accent-soft">{t('chat.openSchedule')}</p>
                     <p className="mt-1 text-xs text-slate-400">{t('chat.scheduleHint')}</p>
                   </Link>
                 </div>
@@ -324,7 +324,7 @@ const Chat = () => {
 
               <div className={`relative z-20 ${showHero ? 'pb-8 pt-[45vh]' : 'pb-4'}`}>
                 {isActiveChatStreaming && (
-                  <p className="mb-2 text-center text-xs text-cyan-400/80 animate-pulse">
+                  <p className="mb-2 text-center text-xs aida-text-accent-dim animate-pulse">
                     {streamStatus === 'thinking'
                       ? t('chat.thinking')
                       : streamStatus === 'generating'

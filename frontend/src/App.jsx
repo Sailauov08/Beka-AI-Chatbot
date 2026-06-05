@@ -10,6 +10,8 @@ import PaymentCancel from './pages/PaymentCancel';
 import Settings from './pages/Settings';
 import Schedule from './pages/Schedule';
 import Profile from './pages/Profile';
+import Friends from './pages/Friends';
+import AuthCallback from './pages/AuthCallback';
 
 const PublicRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -48,6 +50,7 @@ function App() {
           </PublicRoute>
         }
       />
+      <Route path="/auth/callback" element={<AuthCallback />} />
       <Route
         path="/"
         element={
@@ -77,6 +80,14 @@ function App() {
         element={
           <ProtectedRoute>
             <Profile />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/friends"
+        element={
+          <ProtectedRoute>
+            <Friends />
           </ProtectedRoute>
         }
       />

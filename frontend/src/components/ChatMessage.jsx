@@ -10,7 +10,7 @@ const ChatMessage = ({ message, isStreaming, theme = 'light' }) => {
       <div className={`mx-auto flex max-w-3xl gap-3 ${isUser ? 'flex-row-reverse' : ''}`}>
         <div
           className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[10px] font-semibold text-white ${
-            isUser ? (dark ? 'bg-blue-600' : 'bg-ink') : dark ? 'bg-violet-600/80' : 'bg-slate-500'
+            isUser ? (dark ? 'aida-avatar-user' : 'bg-ink') : dark ? 'aida-avatar-ai' : 'bg-slate-500'
           }`}
         >
           {isUser ? 'С' : 'AI'}

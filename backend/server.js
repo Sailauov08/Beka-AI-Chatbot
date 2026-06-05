@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 
 import authRoutes from './routes/auth.js';
 import chatRoutes from './routes/chat.js';
+import friendsRoutes from './routes/friends.js';
 import paymentRoutes, { handleLavaWebhook } from './routes/payment.js';
 import { getPublicAppUrl } from './utils/appUrl.js';
 
@@ -73,6 +74,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/friends', friendsRoutes);
 app.use('/api/payment', paymentRoutes);
 
 app.get('/api/health', (req, res) => {

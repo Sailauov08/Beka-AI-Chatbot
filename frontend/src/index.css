@@ -1,4 +1,6 @@
+@import './styles/accentThemes.css';
 @import './styles/aida.css';
+@import './styles/friends.css';
 
 @tailwind base;
 @tailwind components;
@@ -87,12 +89,12 @@ body {
   font-weight: 600;
   letter-spacing: 0.01em;
   color: #ffffff;
-  background: #1e40af;
+  background: var(--aida-accent-dark);
   transition: background-color 0.15s ease;
 }
 
 .btn-primary:hover {
-  background: #1d4ed8;
+  background: var(--aida-accent);
 }
 
 .btn-primary:disabled {
@@ -128,8 +130,8 @@ body {
 }
 
 .input-field:focus {
-  border-color: #1e40af;
-  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.12);
+  border-color: var(--aida-accent);
+  box-shadow: 0 0 0 3px rgba(var(--aida-accent-rgb), 0.12);
 }
 
 .stat-tile {
@@ -173,11 +175,11 @@ body {
   padding: 0.15rem 0.45rem;
   border-radius: 4px;
   font-size: 0.875em;
-  color: #1e40af;
+  color: var(--aida-accent-dark);
 }
 
 .markdown-body blockquote {
-  border-left: 2px solid #1e40af;
+  border-left: 2px solid var(--aida-accent);
   padding-left: 1rem;
   color: #64748b;
   margin: 0.75rem 0;
@@ -198,7 +200,7 @@ body {
 
 .typing-dot {
   animation: pulse-dot 1.4s infinite ease-in-out both;
-  background: #1e40af;
+  background: var(--aida-accent);
 }
 
 .typing-dot:nth-child(1) {

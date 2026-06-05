@@ -54,20 +54,52 @@ export const authAPI = {
     });
     return handleResponse(response);
   },
-  register: async (name, email, password) => {
-    const response = await fetch(`${API_BASE}/auth/register`, {
+  getOAuthProviders: async () => {
+    const response = await fetch(`${API_BASE}/auth/oauth/providers`);
+    return handleResponse(response);
+  },
+
+  registerSendCode: async ({ name, identifier, password, confirmPassword }) => {
+    const response = await fetch(`${API_BASE}/auth/register/send-code`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password }),
+      body: JSON.stringify({ name, identifier, password, confirmPassword }),
     });
     return handleResponse(response);
   },
 
-  login: async (email, password) => {
-    const response = await fetch(`${API_BASE}/auth/login`, {
+  registerVerify: async (target, code) => {
+    const response = await fetch(`${API_BASE}/auth/register/verify`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ target, code }),
+    });
+    return handleResponse(response);
+  },
+
+  loginSendCode: async (identifier, password) => {
+    const response = await fetch(`${API_BASE}/auth/login/send-code`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identifier, password }),
+    });
+    return handleResponse(response);
+  },
+
+  loginVerify: async (target, code) => {
+    const response = await fetch(`${API_BASE}/auth/login/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ target, code }),
+    });
+    return handleResponse(response);
+  },
+
+  oauthToken: async (token) => {
+    const response = await fetch(`${API_BASE}/auth/oauth/token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token }),
     });
     return handleResponse(response);
   },
@@ -88,6 +120,48 @@ export const authAPI = {
     const response = await fetch(`${API_BASE}/auth/avatar`, {
       method: 'DELETE',
       headers: getAuthHeaders(),
+    });
+    return handleResponse(response);
+  },
+};
+
+export const friendsAPI = {
+  searchUsers: async (q) => {
+    const response = await fetch(
+      `${API_BASE}/friends/search?${new URLSearchParams({ q })}`,
+      { headers: getAuthHeaders() }
+    );
+    return handleResponse(response);
+  },
+
+  getConversations: async () => {
+    const response = await fetch(`${API_BASE}/friends/conversations`, {
+      headers: getAuthHeaders(),
+    });
+    return handleResponse(response);
+  },
+
+  startConversation: async (userId) => {
+    const response = await fetch(`${API_BASE}/friends/conversations`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ userId }),
+    });
+    return handleResponse(response);
+  },
+
+  getConversation: async (conversationId) => {
+    const response = await fetch(`${API_BASE}/friends/conversations/${conversationId}`, {
+      headers: getAuthHeaders(),
+    });
+    return handleResponse(response);
+  },
+
+  sendMessage: async (conversationId, content) => {
+    const response = await fetch(`${API_BASE}/friends/conversations/${conversationId}/messages`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ content }),
     });
     return handleResponse(response);
   },
