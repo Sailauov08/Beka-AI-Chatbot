@@ -8,7 +8,6 @@ import { protect } from '../middleware/auth.js';
 import { avatarUpload, avatarsDir } from '../middleware/avatarUpload.js';
 import { formatSubscriptionForClient } from '../utils/subscription.js';
 import { parseIdentifier, findUserByIdentifier } from '../utils/normalizeIdentifier.js';
-import { createAndSendOtp, verifyOtp } from '../utils/otp.js';
 import oauthRoutes from './oauth.js';
 
 const router = express.Router();
@@ -56,27 +55,6 @@ const userExists = async (target, channel) => {
   return User.findOne({ phone: target });
 };
 
-const respondEmailOtp = (res, otpResult, target, sentMessage) => {
-  if (!otpResult.sent) {
-    return res.status(503).json({
-      success: false,
-      message: otpResult.sendError || 'Email жіберілмеді. SMTP баптауын тексеріңіз.',
-    });
-  }
-
-  return res.json({
-    success: true,
-    message: sentMessage,
-    data: {
-      target,
-      channel: 'email',
-      expiresInSec: otpResult.expiresInSec,
-      emailSent: true,
-      direct: false,
-    },
-  });
-};
-
 // POST /api/auth/register/send-code
 router.post('/register/send-code', async (req, res) => {
   try {
@@ -120,97 +98,29 @@ router.post('/register/send-code', async (req, res) => {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-
-    if (parsed.channel === 'phone') {
-      const user = await User.create({
-        name: name.trim(),
-        password: passwordHash,
-        phone: parsed.target,
-        phoneVerified: true,
-      });
-      const token = generateToken(user._id);
-      return res.status(201).json({
-        success: true,
-        message: 'Тіркелу сәтті',
-        data: { ...userPayload(user, token), direct: true },
-      });
-    }
-
-    const otpResult = await createAndSendOtp({
-      target: parsed.target,
-      channel: parsed.channel,
-      purpose: 'register',
-      payload: {
-        name: name.trim(),
-        passwordHash,
-        channel: parsed.channel,
-      },
-    });
-
-    return respondEmailOtp(
-      res,
-      otpResult,
-      parsed.target,
-      'Email-ге растау коды жіберілді'
-    );
-  } catch (error) {
-    console.error('Register send-code error:', error);
-    res.status(500).json({ success: false, message: error.message || 'Сервер қатесі' });
-  }
-});
-
-// POST /api/auth/register/verify
-router.post('/register/verify', async (req, res) => {
-  try {
-    const { target, code } = req.body;
-    if (!target || !code) {
-      return res.status(400).json({ success: false, message: 'Код қажет' });
-    }
-
-    const normalized = parseIdentifier(target);
-    const lookupTarget = normalized.error
-      ? String(target).trim().toLowerCase()
-      : normalized.target;
-
-    const verified = await verifyOtp({
-      target: lookupTarget,
-      purpose: 'register',
-      code: String(code).trim(),
-    });
-
-    if (!verified.ok) {
-      return res.status(400).json({ success: false, message: verified.message });
-    }
-
-    const { name, passwordHash, channel } = verified.payload || {};
-    const existing = await userExists(lookupTarget, channel);
-    if (existing) {
-      return res.status(400).json({ success: false, message: 'Пайдаланушы бар' });
-    }
-
     const userData = {
-      name,
+      name: name.trim(),
       password: passwordHash,
-      emailVerified: channel === 'email',
-      phoneVerified: channel === 'phone',
+      emailVerified: parsed.channel === 'email',
+      phoneVerified: parsed.channel === 'phone',
     };
 
-    if (channel === 'email') {
-      userData.email = lookupTarget;
+    if (parsed.channel === 'email') {
+      userData.email = parsed.target;
     } else {
-      userData.phone = lookupTarget;
+      userData.phone = parsed.target;
     }
 
     const user = await User.create(userData);
     const token = generateToken(user._id);
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: 'Тіркелу сәтті',
-      data: userPayload(user, token),
+      data: { ...userPayload(user, token), direct: true },
     });
   } catch (error) {
-    console.error('Register verify error:', error);
+    console.error('Register send-code error:', error);
     res.status(500).json({ success: false, message: error.message || 'Сервер қатесі' });
   }
 });
@@ -227,7 +137,7 @@ router.post('/login/send-code', async (req, res) => {
       });
     }
 
-    const { user, error, target, channel } = await findUserByIdentifier(User, identifier);
+    const { user, error } = await findUserByIdentifier(User, identifier);
     if (error) {
       return res.status(400).json({ success: false, message: error });
     }
@@ -256,167 +166,14 @@ router.post('/login/send-code', async (req, res) => {
       });
     }
 
-    if (channel === 'phone') {
-      const token = generateToken(user._id);
-      return res.json({
-        success: true,
-        message: 'Кіру сәтті',
-        data: { ...userPayload(user, token), direct: true },
-      });
-    }
-
-    const otpResult = await createAndSendOtp({
-      target,
-      channel,
-      purpose: 'login',
-      payload: { userId: user._id },
-    });
-
-    return respondEmailOtp(res, otpResult, target, 'Email-ге кіру коды жіберілді');
-  } catch (error) {
-    console.error('Login send-code error:', error);
-    res.status(500).json({ success: false, message: error.message || 'Сервер қатесі' });
-  }
-});
-
-// POST /api/auth/login/verify
-router.post('/login/verify', async (req, res) => {
-  try {
-    const { target, code } = req.body;
-    if (!target || !code) {
-      return res.status(400).json({ success: false, message: 'Код қажет' });
-    }
-
-    const parsed = parseIdentifier(target);
-    const lookupTarget = parsed.error
-      ? String(target).trim().toLowerCase()
-      : parsed.target;
-
-    const verified = await verifyOtp({
-      target: lookupTarget,
-      purpose: 'login',
-      code: String(code).trim(),
-    });
-
-    if (!verified.ok) {
-      return res.status(400).json({ success: false, message: verified.message });
-    }
-
-    const user = await User.findById(verified.payload?.userId);
-    if (!user) {
-      return res.status(404).json({ success: false, message: 'Пайдаланушы табылмады' });
-    }
-
-    if (verified.channel === 'email') user.emailVerified = true;
-    if (verified.channel === 'phone') user.phoneVerified = true;
-    await user.save();
-
     const token = generateToken(user._id);
-
-    res.json({
+    return res.json({
       success: true,
       message: 'Кіру сәтті',
-      data: userPayload(user, token),
+      data: { ...userPayload(user, token), direct: true },
     });
   } catch (error) {
-    console.error('Login verify error:', error);
-    res.status(500).json({ success: false, message: error.message || 'Сервер қатесі' });
-  }
-});
-
-// POST /api/auth/forgot-password/send-code
-router.post('/forgot-password/send-code', async (req, res) => {
-  try {
-    const { email } = req.body;
-    if (!email?.trim()) {
-      return res.status(400).json({ success: false, message: 'Email қажет' });
-    }
-
-    const parsed = parseIdentifier(email);
-    if (parsed.error || parsed.channel !== 'email') {
-      return res.status(400).json({ success: false, message: 'Дұрыс email енгізіңіз' });
-    }
-
-    const user = await User.findOne({ email: parsed.target });
-    if (!user) {
-      return res.status(404).json({ success: false, message: 'Бұл email тіркелмеген' });
-    }
-
-    if (user.oauthProvider && !user.password) {
-      return res.status(400).json({
-        success: false,
-        message: `${user.oauthProvider} арқылы кіріңіз`,
-      });
-    }
-
-    const otpResult = await createAndSendOtp({
-      target: parsed.target,
-      channel: 'email',
-      purpose: 'reset-password',
-      payload: { userId: user._id },
-    });
-
-    return respondEmailOtp(
-      res,
-      otpResult,
-      parsed.target,
-      'Email-ге қалпына келтіру коды жіберілді'
-    );
-  } catch (error) {
-    console.error('Forgot password send-code error:', error);
-    res.status(500).json({ success: false, message: error.message || 'Сервер қатесі' });
-  }
-});
-
-// POST /api/auth/forgot-password/reset
-router.post('/forgot-password/reset', async (req, res) => {
-  try {
-    const { email, code, password, confirmPassword } = req.body;
-
-    if (!email?.trim() || !code || !password) {
-      return res.status(400).json({ success: false, message: 'Email, код және жаңа құпия сөз қажет' });
-    }
-
-    if (password !== confirmPassword) {
-      return res.status(400).json({ success: false, message: 'Құпия сөздер сәйкес келмейді' });
-    }
-
-    if (password.length < 6) {
-      return res.status(400).json({ success: false, message: 'Құпия сөз кемінде 6 таңба' });
-    }
-
-    const parsed = parseIdentifier(email);
-    if (parsed.error || parsed.channel !== 'email') {
-      return res.status(400).json({ success: false, message: 'Дұрыс email енгізіңіз' });
-    }
-
-    const verified = await verifyOtp({
-      target: parsed.target,
-      purpose: 'reset-password',
-      code: String(code).trim(),
-    });
-
-    if (!verified.ok) {
-      return res.status(400).json({ success: false, message: verified.message });
-    }
-
-    const user = await User.findById(verified.payload?.userId);
-    if (!user) {
-      return res.status(404).json({ success: false, message: 'Пайдаланушы табылмады' });
-    }
-
-    user.password = await bcrypt.hash(password, 10);
-    await user.save();
-
-    const token = generateToken(user._id);
-
-    res.json({
-      success: true,
-      message: 'Құпия сөз өзгертілді',
-      data: userPayload(user, token),
-    });
-  } catch (error) {
-    console.error('Forgot password reset error:', error);
+    console.error('Login send-code error:', error);
     res.status(500).json({ success: false, message: error.message || 'Сервер қатесі' });
   }
 });

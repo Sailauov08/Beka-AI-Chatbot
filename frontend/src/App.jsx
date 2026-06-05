@@ -12,8 +12,6 @@ import Schedule from './pages/Schedule';
 import Profile from './pages/Profile';
 import Friends from './pages/Friends';
 import AuthCallback from './pages/AuthCallback';
-import ForgotPassword from './pages/ForgotPassword';
-
 const PublicRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
 
@@ -48,14 +46,6 @@ function App() {
         element={
           <PublicRoute>
             <Register />
-          </PublicRoute>
-        }
-      />
-      <Route
-        path="/forgot-password"
-        element={
-          <PublicRoute>
-            <ForgotPassword />
           </PublicRoute>
         }
       />

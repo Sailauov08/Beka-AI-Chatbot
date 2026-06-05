@@ -72,39 +72,14 @@ export const AuthProvider = ({ children }) => {
     setSubscription(data.subscription || null);
   };
 
-  const loginSendCode = async (identifier, password) => {
-    const response = await authAPI.loginSendCode(identifier, password);
-    if (response.data?.direct) {
-      applyAuth(response.data);
-    }
-    return response;
-  };
-
-  const loginVerify = async (target, code) => {
-    const response = await authAPI.loginVerify(target, code);
+  const login = async (identifier, password) => {
+    const response = await authAPI.login(identifier, password);
     applyAuth(response.data);
     return response;
   };
 
-  const registerSendCode = async (payload) => {
-    const response = await authAPI.registerSendCode(payload);
-    if (response.data?.direct) {
-      applyAuth(response.data);
-    }
-    return response;
-  };
-
-  const registerVerify = async (target, code) => {
-    const response = await authAPI.registerVerify(target, code);
-    applyAuth(response.data);
-    return response;
-  };
-
-  const forgotPasswordSendCode = async (email) =>
-    authAPI.forgotPasswordSendCode(email);
-
-  const forgotPasswordReset = async (payload) => {
-    const response = await authAPI.forgotPasswordReset(payload);
+  const register = async (payload) => {
+    const response = await authAPI.register(payload);
     applyAuth(response.data);
     return response;
   };
@@ -150,12 +125,8 @@ export const AuthProvider = ({ children }) => {
         subscription,
         loading,
         isAuthenticated,
-        loginSendCode,
-        loginVerify,
-        registerSendCode,
-        registerVerify,
-        forgotPasswordSendCode,
-        forgotPasswordReset,
+        login,
+        register,
         applyOAuthToken,
         logout,
         refreshSubscription,
