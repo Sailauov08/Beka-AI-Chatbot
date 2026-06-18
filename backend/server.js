@@ -80,17 +80,24 @@ app.use('/api/friends', friendsRoutes);
 app.use('/api/payment', paymentRoutes);
 
 app.get('/api/health', (req, res) => {
+  const aiProvider = (process.env.AI_PROVIDER || 'gemini').toLowerCase();
   res.json({
     success: true,
     message: 'Beka AI is running',
     frontend: serveFrontend,
     database: mongoose.connection.readyState === 1,
     appUrl: publicAppUrl || null,
+    aiProvider,
     gemini: Boolean(
       process.env.GEMINI_API_KEY &&
         process.env.GEMINI_API_KEY !== 'your_gemini_api_key_here'
     ),
-    geminiModel: process.env.GEMINI_MODEL || 'gemini-2.0-flash,gemini-2.0-flash-lite',
+    groq: Boolean(
+      process.env.GROQ_API_KEY &&
+        process.env.GROQ_API_KEY !== 'your_groq_api_key_here'
+    ),
+    geminiModel: process.env.GEMINI_MODEL || 'gemini-2.0-flash-lite,gemini-2.0-flash',
+    groqModel: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile,llama-3.1-8b-instant',
   });
 });
 
@@ -124,11 +131,24 @@ const connectDB = async () => {
 
 connectDB();
 
-const geminiKey = process.env.GEMINI_API_KEY;
-if (!geminiKey || geminiKey === 'your_gemini_api_key_here') {
-  console.warn('⚠ GEMINI_API_KEY орнатылмаған — AI жауап бермейді. backend/.env файлын толтырыңыз.');
-} else if (!geminiKey.startsWith('AIza') && !geminiKey.startsWith('AQ.')) {
-  console.warn('⚠ GEMINI_API_KEY форматы танылмады. Google AI Studio кілтін тексеріңіз.');
+const aiProvider = (process.env.AI_PROVIDER || 'gemini').toLowerCase();
+
+if (aiProvider === 'groq') {
+  const groqKey = process.env.GROQ_API_KEY;
+  if (!groqKey || groqKey === 'your_groq_api_key_here') {
+    console.warn('⚠ GROQ_API_KEY орнатылмаған — AI жауап бермейді. https://console.groq.com/keys');
+  } else {
+    console.log('AI provider: Groq', process.env.GROQ_MODEL || 'llama-3.3-70b-versatile');
+  }
+} else {
+  const geminiKey = process.env.GEMINI_API_KEY;
+  if (!geminiKey || geminiKey === 'your_gemini_api_key_here') {
+    console.warn('⚠ GEMINI_API_KEY орнатылмаған — AI жауап бермейді. backend/.env файлын толтырыңыз.');
+  } else if (!geminiKey.startsWith('AIza') && !geminiKey.startsWith('AQ.')) {
+    console.warn('⚠ GEMINI_API_KEY форматы танылмады. Google AI Studio кілтін тексеріңіз.');
+  } else {
+    console.log('AI provider: Gemini', process.env.GEMINI_MODEL || 'gemini-2.0-flash-lite');
+  }
 }
 
 if (!process.env.LAVA_API_KEY || !process.env.LAVA_OFFER_ID) {
